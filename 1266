@@ -1,0 +1,86 @@
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#define INF 0x3f3f3f3f
+#define M 124755
+#define N 505
+using namespace std;
+int dep[N],nextt[M<<2],head[N],to[M<<2],flow[M<<2],cnt=1,f[N][N],n,m,x[M<<1],y[M<<1],t[M<<1],c[M<<1];
+inline int min(int a,int b) {return a>b?b:a;}
+void ins(int u,int v,int f)
+{
+    nextt[++cnt]=head[u];
+    to[cnt]=v;
+    flow[cnt]=f;
+    head[u]=cnt;
+}
+bool bfs(int s,int t)
+{
+    for(int i=s;i<=t;++i) dep[i]=-1;
+    queue<int>q;
+    dep[s]=0;
+    q.push(s);
+    for(int now;!q.empty();)
+    {
+        now=q.front();
+        q.pop();
+        for(int i=head[now];i;i=nextt[i])
+        {
+            int v=to[i];
+            if(dep[v]==-1&&flow[i])
+            {
+                dep[v]=dep[now]+1;
+                if(v==t) return true;
+                q.push(v); 
+            }
+        }
+    }
+    return false;
+}
+int dfs(int now,int t,int Limit)
+{
+    if(now==t||Limit==0) return Limit;
+    int f=0,ret=0;
+    for(int i=head[now];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(dep[v]==dep[now]+1&&flow[i]&&(f=dfs(v,t,min(Limit,flow[i]))))
+        {
+            ret+=f;
+            Limit-=f;
+            flow[i]-=f;
+            flow[i^1]+=f;
+            if(!Limit) break;
+        }
+    }
+    if(ret!=Limit) dep[now]=-1;
+    return ret;
+}
+int dinic(int s,int t)
+{
+    int ans=0;
+    for(;bfs(s,t);ans+=dfs(s,t,INF));
+    return ans;
+}
+int main()
+{
+    scanf("%d%d",&n,&m);
+    memset(f,63,sizeof(f));
+    for(int i=1;i<=n;++i) f[i][i]=0;
+    for(int i=1;i<=m;++i)
+    scanf("%d%d%d%d",&x[i],&y[i],&t[i],&c[i]),f[x[i]][y[i]]=f[y[i]][x[i]]=min(f[x[i]][y[i]],t[i]);
+    for(int k=1;k<=n;++k)
+     for(int i=1;i<=n;++i)
+      for(int j=1;j<=n;++j)
+       f[i][j]=min(f[i][j],f[i][k]+f[k][j]);
+    printf("%d\n",f[1][n]);
+    for(int i=1;i<=m;++i)
+    {
+        int u=x[i],v=y[i];
+        if(f[1][u]+t[i]+f[v][n]==f[1][n]) ins(u,v,c[i]),ins(v,u,0);
+        if(f[1][v]+t[i]+f[u][n]==f[1][n]) ins(v,u,c[i]),ins(u,v,0);
+    }
+    printf("%d\n",dinic(1,n));
+    return 0;
+}
+﻿
