@@ -1,0 +1,96 @@
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
+#include <queue>
+#define N 50005
+#define BUF 12345678
+using namespace std;
+bool vis[N];
+char Buf[BUF],*buf=Buf;
+int tot,nextt[N<<2],to[N<<2],head[N],cnt,val[N<<2],dis[N];
+int ans=0x7fffffff,n,m;
+inline void Read(int &x)
+{
+    for(x=0;!isdigit(*buf);++buf);
+    for(;isdigit(*buf);x=x*10+*buf-'0',++buf);
+}
+struct node
+{
+    int from,to,a,b;
+    bool operator<(node c)const
+    {
+        return b<c.b;
+    }
+}e[N<<2];
+inline void ins(int u,int v,int l)
+{
+    nextt[++cnt]=head[u];
+    to[cnt]=v;
+    val[cnt]=l;
+    head[u]=cnt;
+}
+queue<int>q;
+inline int max(int a,int b) {return a>b?a:b;}
+inline int min(int a,int b) {return a<b?a:b;}
+void spfa()
+{
+    for(int now;!q.empty();)
+    {
+        now=q.front();
+        q.pop();
+        vis[now]=0;
+        for(int i=head[now];i;i=nextt[i])
+        {
+            int v=to[i];
+            if(dis[v]>max(val[i],dis[now]))
+            {
+                dis[v]=max(val[i],dis[now]);
+                if(!vis[v])
+                {
+                    q.push(v);
+                    vis[v]=1; 
+                }
+            }
+        }
+    }
+}//┑(￣Д ￣)┍
+int Main()
+{
+    fread(buf,1,BUF,stdin);
+    Read(n);
+    Read(m);
+    for(;m--;)
+    {
+        ++tot;
+        Read(e[tot].from);Read(e[tot].to);Read(e[tot].a);Read(e[tot].b);
+        if(e[tot].from==e[tot].to) tot--;
+    }
+    sort(e+1,e+1+tot);
+    for(int i=1;i<=n;++i) dis[i]=0x3f3f3f3f;
+    q.push(1);
+    dis[1]=0;vis[1]=1;
+    int ans=0x3f3f3f3f;
+    for(int i=1;i<=tot;++i)
+    {
+        if(e[i].b>=ans) break;
+        ins(e[i].from,e[i].to,e[i].a);
+        ins(e[i].to,e[i].from,e[i].a);
+        if(!vis[e[i].from])
+        {
+            vis[e[i].from]=1;
+            q.push(e[i].from);
+        }
+        if(!vis[e[i].to])
+        {
+            vis[e[i].to]=1;
+            q.push(e[i].to); 
+        }
+        spfa();
+        ans=min(ans,dis[n]+e[i].b);
+    }
+    ans==0x3f3f3f3f?printf("-1"):printf("%d\n",ans);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]) {;}
+﻿
