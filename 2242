@@ -1,0 +1,110 @@
+#include <ctype.h>
+#include <cstdio>
+#include <cmath>
+#include <map>
+using namespace std;
+typedef long long LL;
+map<LL,int>q;
+void read(int &x)
+{
+    x=0;bool f=0;
+    register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(; isdigit(ch);ch=getchar()) x=x*10+ch-'0';
+    x=f?(~x)+1:x;
+}
+inline LL ksm(int a,int b,int c)
+{
+    LL base=a,r=1%c;
+    while(b)
+    {
+        if(b&1) r=(r*base)%c;
+        base=(base*base)%c;
+        b>>=1;
+    }
+    return r;
+}
+int gcd(int a,int b) {return a%b==0?b:gcd(b,a%b);}
+void exgcd(int a,int b,int &x,int &y)
+{
+    if(b==0)
+    {
+        x=1;y=0;
+        return;
+    }
+    exgcd(b,a%b,x,y);
+    int tmp=x;
+    x=y;
+    y=tmp-(a/b)*y;
+}
+int T,L;
+int main()
+{
+    read(T);
+    read(L);
+    for(int y,z,p;T--;)
+    {
+        read(y);
+        read(z);
+        read(p);
+        switch(L)
+        {
+            case 1:
+            {
+                printf("%d\n",ksm(y,z,p));
+                break;
+            }
+            case 2:
+            {
+                int m,n;
+                p=-p;
+                int k=gcd(y,p);
+                if(z%k) 
+                    printf("Orz, I cannot find x!\n");
+                else
+                {
+                    y/=k;z/=k;p/=k;
+                    exgcd(y,p,m,n);
+                    m=(LL)m*z%p;
+                    for(;m<0;m+=p);
+                    printf("%d\n",m);
+                }
+                break;
+            }
+            case 3:
+            {
+                if(y%p==0&&z==0) printf("1\n");
+                else if(y%p==0) printf("Orz, I cannot find x!\n");
+                else 
+                {
+                    q.clear();
+                    bool flag=false;
+                    LL t=1,m=ceil(sqrt(p));
+                    q[1]=m+1;
+                    for(LL i=1;i<m;i++)
+                    {
+                        t=t*y%p;
+                        if(!q[t]) q[t]=i;
+                    }
+                    t=ksm(y,p-m-1,p);LL in=1;
+                    for(LL k=0;k<m;k++)
+                    {
+                        int ans=z*in%p;
+                        if(q[ans])
+                        {
+                            int v=q[ans];
+                            if(v==m+1) v=0;
+                            printf("%lld\n",k*m+v);
+                            flag=true;
+                            break;
+                        }
+                        in=in*t%p;
+                    }
+                    if(!flag) printf("Orz, I cannot find x!\n");
+                }
+                break;
+            }
+        }
+    }
+    return 0;
+}
