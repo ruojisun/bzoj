@@ -1,0 +1,345 @@
+#include <algorithm>
+#include <cstdio>
+#include <vector>
+#include <queue>
+
+using namespace std;
+int a,b;
+long long ans;
+class Segmenttree
+{
+    private:
+        int dis[3];
+        struct Segment
+        {
+            int l,r,sum;
+            Segment *ch[2];
+            Segment()
+            {
+                ch[0]=ch[1]=NULL;
+            }
+        };
+        void build(Segment *&k,int l,int r)
+        {
+            k=new Segment;
+            k->l=l;k->r=r;
+            if(l==r) {k->sum=dis[l];return;}
+            int mid=(l+r)>>1;
+            build(k->ch[0],l,mid);
+            build(k->ch[1],mid+1,r);
+            k->sum=k->ch[0]->sum+k->ch[1]->sum;
+        }
+        int Tree_Query(Segment *&k,int l,int r)
+        {
+            if(k->l==l&&k->r==r) return k->sum;
+            int mid=(k->l+k->r)>>1;
+            if(l>mid) return Tree_Query(k->ch[1],l,r);
+            else if(r<=mid) return Tree_Query(k->ch[0],l,r);
+            else return Tree_Query(k->ch[0],l,mid)+Tree_Query(k->ch[1],mid+1,r);
+        }
+    public:
+        int get()
+        {
+            Segment *root=new Segment;
+            dis[1]=a;
+            dis[2]=b;
+            build(root,1,2);
+            return Tree_Query(root,1,2);
+        }
+};
+class Segmenttree segment;
+class chairmantree
+{
+    private:
+        int rs[500],ls[500],sum[500],rt[3],v1[3],v2[3],tot,Size;
+        int build(int l,int r)
+        {
+            int now=++tot;
+            sum[now]=0;
+            if(l==r) return now;
+            int mid=(l+r)>>1;
+            ls[now]=build(l,mid);
+            rs[now]=build(mid+1,r);
+            return now;
+        }
+        inline int rank(int x) {return lower_bound(v2+1,v2+1+Size,x)-v2;}
+        void update(int l,int r,int x,int &y,int t)
+        {
+            y=++tot;
+            sum[y]=sum[x]+1;
+            if(l==r) return;
+            ls[y]=ls[x];
+            rs[y]=rs[x];
+            int mid=(l+r)>>1;
+            if(t<=mid) update(l,mid,ls[x],ls[y],t);
+            else update(mid+1,r,rs[x],rs[y],t);
+        }
+        int ask(int l,int r,int x,int y,int k)
+        {
+            if(l==r) return l;
+            int mid=(l+r)>>1;
+            if(sum[ls[y]]-sum[ls[x]]>=k) return ask(l,mid,ls[x],ls[y],k);
+            else {k-=sum[ls[y]]-sum[ls[x]];return ask(mid+1,r,rs[x],rs[y],k);} 
+        }
+    public:
+        int get()
+        {
+            v1[1]=v2[1]=a;
+            v1[2]=v2[2]=b;
+            sort(v2+1,v2+1+2);
+            Size=unique(v2+1,v2+1+2)-v2-1;
+            rt[0]=build(1,Size);
+            for(int i=1;i<=2;++i) update(1,Size,rt[i-1],rt[i],rank(v1[i]));
+            return v2[ask(1,Size,rt[0],rt[2],1)]+v2[ask(1,Size,rt[0],rt[2],2)];
+        }
+};
+class chairmantree chairman;
+class BIT
+{
+    private:
+        int tag[3],n;
+        inline int lowbit(int x) {return x&(-x);}
+        void modify(int x,int y)
+        {
+            for(;x<=n;x+=lowbit(x))
+            tag[x]+=y;
+        }
+        int ask(int x)
+        {
+            int ret=0;
+            for(;x;x-=lowbit(x)) ret+=tag[x];
+            return ret;
+        }
+    public:
+        int get()
+        {
+            n=2;
+            tag[1]=tag[2]=0;
+            modify(1,a);
+            modify(2,b);
+            return ask(2)-ask(0);
+        }
+};
+class BIT bit;
+class SPFA
+{
+    private:
+        vector<pair<int,int> >G[4];
+        int dis[4],n;
+        bool vis[4];
+        void Spfa(int s)
+        {
+            queue<int>q;
+            for(int i=1;i<=n;++i) vis[i]=0,dis[i]=0x7fffffff;
+            dis[s]=0;
+            q.push(s);
+            for(int now;!q.empty();)
+            {
+                now=q.front();
+                q.pop();
+                vis[now]=0;
+                for(int i=0;i<G[now].size();++i)
+                {
+                    int v=G[now][i].first,w=G[now][i].second;
+                    if(dis[v]>dis[now]+w)
+                    {
+                        dis[v]=dis[now]+w;;
+                        if(!vis[v])
+                        {
+                            vis[v]=1;
+                            q.push(v);
+                        }
+                    }
+                }
+            }
+        }
+    public:
+        int get()
+        {
+            n=3;
+            G[1].push_back(make_pair(2,a));
+            G[2].push_back(make_pair(3,b));
+            Spfa(1);
+            return dis[3];
+        }
+};
+class SPFA spfa;
+class FLOYD
+{
+    private:
+        #define inf 0x3f3f3f3f
+        inline int min(int a,int b) {return a>b?b:a;}
+        int f[4][4],n;
+        int floyd()
+        {
+            for(int k=1;k<=n;++k)
+             for(int i=1;i<=n;++i)
+              for(int j=1;j<=n;++j)
+               f[i][j]=min(f[i][j],f[i][k]+f[k][j]);
+            return f[1][3];
+        }
+    public:
+        int get()
+        {
+            n=3;
+            for(int i=1;i<=n;++i)
+             for(int j=1;j<=n;++j)
+              f[i][j]=(i!=j)*inf;
+            f[1][2]=a;
+            f[2][3]=b;
+            return floyd();
+        }
+};
+class FLOYD floyd;
+class DINIC
+{
+    private:
+        inline int min(int a,int b) {return a>b?b:a;}
+        #define inf 0x3f3f3f3f
+        int s,t,nextt[15],to[15],flow[15],head[5],cnt,dep[5];
+        bool bfs(int s,int t)
+        {
+            queue<int>q;
+            for(int i=s;i<=t;++i) dep[i]=-1;
+            q.push(s);
+            dep[s]=0;
+            for(int now;!q.empty();)
+            {
+                now=q.front();
+                q.pop();
+                for(int i=head[now];i;i=nextt[i])
+                {
+                    int v=to[i];
+                    if(dep[v]==-1&&flow[i])
+                    {
+                        dep[v]=dep[now]+1;
+                        if(v==t) return true;
+                        q.push(v);
+                    }
+                }
+            }
+            return false;
+        }
+        int dfs(int now,int t,int Limit)
+        {
+            if(now==t||!Limit) return Limit;
+            int f,ret=0;
+            for(int i=head[now];i;i=nextt[i])
+            {
+                int v=to[i];
+                if(dep[v]==dep[now]+1&&flow[i]&&(f=dfs(v,t,min(Limit,flow[i]))))
+                {
+                    flow[i]-=f;
+                    flow[i^1]+=f;
+                    Limit-=f;
+                    ret+=f;
+                    if(!Limit) break;
+                }
+            }
+            if(ret!=Limit) dep[now]=-1;
+            return ret;
+        }
+        int dinic(int s,int t)
+        {
+            int ret=0;
+            for(;bfs(s,t);ret+=dfs(s,t,inf));
+            return ret;
+        }
+        void ins(int u,int v,int l)
+        {
+            nextt[++cnt]=head[u];
+            to[cnt]=v;
+            flow[cnt]=l;
+            head[u]=cnt;
+        }
+    public:
+        int get()
+        {
+            s=0;t=3;cnt=1;
+            ins(s,1,a);
+            ins(1,s,0);
+            ins(s,2,b);
+            ins(2,s,0);
+            ins(1,t,a);
+            ins(t,1,0);
+            ins(2,t,b);
+            ins(t,2,0);
+            return dinic(s,t);
+        }
+};
+class DINIC dinic;
+class DP
+{
+    private:
+        inline int max(int a,int b) {return a>b?a:b;}
+        int f[4],v[4],w[4];
+    public:
+        int get()
+        {
+            v[1]=v[2]=1;
+            w[1]=a;if(a<0) f[0]+=a,f[1]+=a,f[2]+=a;
+            w[2]=b;if(b<0) f[0]+=b,f[1]+=b,f[2]+=b;
+            for(int i=1;i<=2;++i)
+             for(int j=2;j>=v[i];--j)
+              f[j]=max(f[j-v[i]]+w[i],f[j]);
+            return f[2];
+        }
+};
+class DP dp;
+class Kruskal
+{
+    private:
+        int fa[4];
+        struct node
+        {
+            int x,y,z;
+            bool operator<(node a)const
+            {
+                return z<a.z;
+            }
+        }e[5];
+        int find_(int x) {return x==fa[x]?x:fa[x]=find_(fa[x]);}
+    public:
+        int get()
+        {
+            int n=3,cnt=0;
+            for(int i=1;i<=n;++i) fa[i]=i;
+            e[++cnt].x=1;
+            e[cnt].y=2;
+            e[cnt].z=a;
+            e[++cnt].x=2;
+            e[cnt].y=3;
+            e[cnt].z=b;
+            sort(e+1,e+1+cnt);
+            int num=0,ret=0;
+            for(int i=1;i<=cnt;++i)
+            {
+                int fx=find_(e[i].x),fy=find_(e[i].y);
+                if(fx!=fy)
+                {
+                    fa[fy]=fx;
+                    num++;
+                    ret+=e[i].z;
+                    if(num==n-1) break;
+                }
+            }
+            return ret;
+        }
+};
+class Kruskal kruskal;
+int Main()
+{
+    scanf("%d%d",&a,&b);
+    ans+=segment.get();
+    ans+=bit.get();
+    ans+=chairman.get();
+    ans+=spfa.get();
+    ans+=floyd.get();
+    ans+=dinic.get();
+    ans+=dp.get();
+    ans+=kruskal.get();
+    printf("%lld\n",ans/8);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
