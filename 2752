@@ -1,0 +1,125 @@
+#include <ctype.h>
+#include <cstdio>
+#define N 200020
+
+typedef long long LL;
+void read(LL &x)
+{
+    x=0;
+    bool f=0;
+    register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(; isdigit(ch);ch=getchar()) x=(x<<3)+(x<<1)+ch-'0';
+    x=f?(~x)+1:x;
+}
+LL ans1,ans2,ans3,p1[N],p2[N],p3[N],n,m;
+LL gcd(LL a,LL b) {return b?gcd(b,a%b):a;}
+struct typetree
+{
+    LL l,r,mid;
+    LL sum1,sum2,sum3,flag;
+    typetree *ch[2];
+    typetree ()
+    {
+        ch[0]=ch[1]=NULL;
+        sum1=sum2=sum3=flag=0;
+    }
+}*root=new typetree;
+class type
+{
+    private:
+        inline void pushup(typetree *&k)
+        {
+            k->sum1=k->ch[0]->sum1+k->ch[1]->sum1;
+            k->sum2=k->ch[0]->sum2+k->ch[1]->sum2;
+            k->sum3=k->ch[0]->sum3+k->ch[1]->sum3;
+        }
+        inline void pushdown(typetree *&k)
+        {
+            if(k->l==k->r) return;
+            k->ch[0]->flag+=k->flag;
+            k->ch[1]->flag+=k->flag;
+            k->ch[0]->sum1+=k->flag*(p1[k->ch[0]->r]-p1[k->ch[0]->l-1]);
+            k->ch[0]->sum2+=k->flag*(p2[k->ch[0]->r]-p2[k->ch[0]->l-1]);
+            k->ch[0]->sum3+=k->flag*(p3[k->ch[0]->r]-p3[k->ch[0]->l-1]);
+            k->ch[1]->sum1+=k->flag*(p1[k->ch[1]->r]-p1[k->ch[1]->l-1]);
+            k->ch[1]->sum2+=k->flag*(p2[k->ch[1]->r]-p2[k->ch[1]->l-1]);
+            k->ch[1]->sum3+=k->flag*(p3[k->ch[1]->r]-p3[k->ch[1]->l-1]);
+            k->flag=0;
+        }
+    public:
+        void haha(){build(root,1,n-1);}
+        void build(typetree *&k,LL l,LL r)
+        {
+            k=new typetree;
+            k->l=l;k->r=r;
+            if(l==r) return;
+            k->mid=(l+r)>>1;
+            build(k->ch[0],l,k->mid);
+            build(k->ch[1],k->mid+1,r);
+        }
+        void query(typetree *&k,LL l,LL r,LL L,LL R)
+        {
+            if(L<=l&&r<=R)
+            {
+                ans1+=k->sum1;
+                ans2+=k->sum2;
+                ans3+=k->sum3;
+                return;
+            }
+            if(k->flag) pushdown(k);
+            if(L<=k->mid) query(k->ch[0],l,k->mid,L,R);
+            if(R>k->mid) query(k->ch[1],k->mid+1,r,L,R);
+            pushup(k);
+        }
+        void plus(typetree *&k,LL l,LL r,LL L,LL R,LL v)
+        {
+            if(L<=l&&r<=R)
+            {
+                k->flag+=v;
+                k->sum1+=v*(p1[r]-p1[l-1]);
+                k->sum2+=v*(p2[r]-p2[l-1]);
+                k->sum3+=v*(p3[r]-p3[l-1]);
+                return;
+            }
+            if(k->flag) pushdown(k);
+            if(L<=k->mid) plus(k->ch[0],l,k->mid,L,R,v);
+            if(R>k->mid) plus(k->ch[1],k->mid+1,r,L,R,v);
+            pushup(k);
+        }
+        
+};
+class type *tree;
+int main()
+{
+    for(LL i=1;i<=100000;i++)
+    {
+        p1[i]=p1[i-1]+1;
+        p2[i]=p2[i-1]+i;
+        p3[i]=p3[i-1]+i*i;
+    }
+    read(n);read(m);
+    tree->build(root,1,n-1);
+    char opt[5];
+    for(LL x,y,z;m--;)
+    {
+        scanf("%s",opt+1);
+        if(opt[1]=='C')
+        {
+            read(x);read(y);read(z);
+            tree->plus(root,1,n-1,x,y-1,z);
+        }
+        else 
+        {    
+            read(x);read(y);
+            ans1=ans2=ans3=0;
+            tree->query(root,1,n-1,x,y-1);
+            LL fm=((y-x+1)*(y-x))/2;
+            LL fz=(y-x*y)*ans1+(x+y-1)*ans2-ans3;
+            LL Gcd=gcd(fm,fz); 
+            printf("%lld/",fz/Gcd);
+            printf("%lld\n",fm/Gcd);
+        }
+    }
+    return 0;
+}
