@@ -1,0 +1,95 @@
+#include <ctype.h>
+#include <cstdio>
+#include <queue>
+#define Max 80000
+#define inf 0x7fffffff
+using namespace std; 
+void read(int &x)
+{
+    x=0;bool f=0;
+    register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(;isdigit(ch);ch=getchar()) x=x*10+ch-'0';
+    x=f?(~x)+1:x;
+}
+struct Edge
+{
+    int next,to,dis,limit;
+    Edge (int next=0,int to=0,int limit=0,int dis=0) : next(next),to(to),limit(limit),dis(dis) {}
+}edge[Max<<1];
+bool vis[Max];
+int answer,dist,flow[Max],N,M,head[Max],dis[Max],fa[Max],cnt=1;
+void insert(int u,int v,int w,int l)
+{
+    edge[++cnt]=Edge(head[u],v,w,l);
+    head[u]=cnt;
+}
+bool spfa(int s,int t)
+{
+    for(int i=1;i<=N*N;i++) {dis[i]=inf;flow[i]=inf;vis[i]=0;}
+    vis[s]=1;
+    dis[s]=fa[s]=0;
+    queue<int>Q;
+    Q.push(s);
+    while(!Q.empty())
+    {
+        int now=Q.front();
+        Q.pop();
+        vis[now]=0;
+        for(int i=head[now];i;i=edge[i].next)
+        {
+            int v=edge[i].to;
+            if(dis[v]>dis[now]+edge[i].dis&&edge[i].limit>0)
+            {
+                dis[v]=dis[now]+edge[i].dis;
+                fa[v]=i;
+                flow[v]=min(flow[now],edge[i].limit);
+                if(!vis[v])
+                {
+                    vis[v]=1;
+                    Q.push(v); 
+                }
+            }
+        }
+    }
+    return dis[t]<inf;
+}
+void dinic(int s,int t)
+{
+    for(;spfa(s,t);)
+    {
+        answer++;
+        int x=flow[t];
+        for(int i=t;i!=s&&i;i=edge[fa[i]^1].to)
+        {
+            edge[fa[i]].limit-=x;
+            edge[fa[i]^1].limit+=x;
+        }
+        dist+=x*dis[t];
+    }
+}
+int main()
+{
+    read(N);
+    read(M);
+    insert(1,1+N,inf,0);
+    insert(1+N,1,0,0);
+    insert(N,N+N,inf,0);
+    insert(N+N,N,0,0);
+    for(int i=2;i<N;i++)
+    {
+        insert(i,i+N,1,0);
+        insert(i+N,i,0,0);
+    }
+    for(int a,b,c;M--;)
+    {
+        read(a);
+        read(b);
+        read(c);
+        insert(a+N,b,1,c);
+        insert(b,a+N,0,-c);
+    }
+    dinic(1,N);
+    printf("%d %d",answer,dist);
+    return 0;
+}
