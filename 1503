@@ -1,0 +1,170 @@
+#include <ctype.h>
+#include <cstdio>
+#define N 100001
+
+void read(int &x)
+{
+    x=0;
+    bool f=0;
+    register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(; isdigit(ch);ch=getchar()) x=(x<<3)+(x<<1)+ch-'0';
+    x=f?(~x)+1:x;
+}
+int nt,ans,all,n,Min,data[N],cnt[N],siz[N],root,cn,tot,fa[N],ch[N][2];
+inline int son(int rt) {return ch[fa[rt]][1]==rt;}
+void pushup(int rt)
+{
+    int l=ch[rt][0],r=ch[rt][1];
+    siz[rt]=siz[l]+siz[r]+cnt[rt];
+}
+void rotate(int x)
+{
+    int y=fa[x],z=fa[y],b=son(x),c=son(y),a=ch[x][!b];
+    if(z) ch[z][c]=x;else root=x;fa[x]=z;
+    if(a) fa[a]=y;ch[y][b]=a;
+    ch[x][!b]=y;fa[y]=x;
+    pushup(y);pushup(x); 
+}
+void splay(int x,int i)
+{
+    while(fa[x]!=i)
+    {
+        int y=fa[x],z=fa[y];
+        if(z==i) rotate(x);
+        else 
+        {
+            if(son(x)==son(y))
+            {
+                rotate(y);
+                rotate(x);
+            }
+            else 
+            {
+                rotate(x);
+                rotate(x); 
+            }
+        }
+    }
+}
+void ins(int &rt,int x)
+{
+    if(rt==0)
+    {
+        rt=++cn;
+        data[cn]=x;
+        cnt[cn]=siz[cn]=1;
+        nt=cn;
+        return;
+    }
+    if(data[rt]==x)
+    {
+        cnt[rt]++;
+        siz[rt]++;
+        nt=rt;
+        return;
+    }
+    if(x<data[rt])
+    {
+        ins(ch[rt][0],x);
+        fa[ch[rt][0]]=rt;
+        pushup(rt);
+    }
+    else 
+    {
+        ins(ch[rt][1],x);
+        fa[ch[rt][1]]=rt;
+        pushup(rt);
+    }
+}
+int getmn(int rt)
+{
+    int p=rt,ans=-1;
+    while(p)
+    {
+        ans=p;
+        p=ch[p][0];
+    }
+    return ans;
+}
+void del(int rt,int x)
+{
+    if(data[rt]==x)
+    {
+        if(cnt[rt]>1)
+        {
+            cnt[rt]--;
+            siz[rt]--;
+        }
+        else 
+        {
+            splay(rt,0);
+            int p=getmn(ch[rt][1]);
+            if(p!=-1)
+            {
+                splay(p,rt);
+                root=p;fa[p]=0;
+                ch[p][0]=ch[rt][0];
+                fa[ch[rt][0]]=p;
+            }
+            else 
+            {
+                root=ch[rt][0];
+                fa[ch[rt][0]]=0;
+            }
+        }
+        return;
+    }
+    if(x<data[rt])
+    {
+        del(ch[rt][0],x);
+        pushup(rt);
+    }
+    else
+    {
+        del(ch[rt][1],x);
+        pushup(rt);
+    }
+}
+int getxth(int rt,int k)
+{
+    int l=ch[rt][0];
+    if(siz[l]+1<=k&&k<=siz[l]+cnt[rt]) return data[rt];
+    if(siz[l]+1>k) return getxth(ch[rt][0],k);
+    if(siz[l]+cnt[rt]<k) return getxth(ch[rt][1],k-(siz[l]+cnt[rt]));
+}
+int main()
+{
+    read(n);
+    read(Min);
+    char opt[5];
+    for(int x;n--;)
+    {
+        scanf("%s",opt+1);
+        read(x);
+        if(opt[1]=='I')
+        {
+            if(x>=Min) ins(root,x-all),splay(nt,0);
+            else continue;
+        }
+        else if(opt[1]=='A') all+=x;
+        else if(opt[1]=='S')
+        {
+            all-=x;
+            ins(root,Min-all);
+            splay(nt,0);
+            ans+=ch[root][0]?siz[ch[root][0]]:0;
+            fa[ch[root][0]]=0;
+            siz[root]-=siz[ch[root][0]];
+            ch[root][0]=0;
+            del(root,Min-all);
+        }
+        else
+        {
+            if(siz[root]>=x) printf("%d\n",getxth(root,siz[root]-x+1)+all);
+            else printf("-1\n");
+        }
+    }
+    printf("%d\n",ans);
+    return 0;
+}
