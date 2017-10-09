@@ -1,0 +1,116 @@
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#include <queue>
+#define M 1000005
+#define N 1505
+using namespace std;
+struct Edge
+{
+    int x,y,z;
+}e[M];
+int dist[2][N],D[N],nextt[M<<1],to[M<<1],head[M<<1],val[M<<1],cnt,n,m,s[3],t[3],f[N],use[M];
+inline void Read(int &x)
+{
+    register char ch=getchar();
+    for(x=0;!isdigit(ch);ch=getchar());
+    for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+}
+inline void ins(int u,int v,int l)
+{
+    nextt[++cnt]=head[u];
+    to[cnt]=v;
+    val[cnt]=l;
+    head[u]=cnt;
+}
+bool vis[N];
+struct node
+{
+    int x,y;
+    bool operator<(node a)const
+    {
+        return y>a.y;
+    }
+};
+void dijkstra(int s,int *dis)
+{
+    memset(dis,0x3f,sizeof(dist[0]));
+    memset(vis,0,sizeof(vis));
+    dis[s]=0;
+    priority_queue<node>q;
+    q.push((node){s,dis[s]});
+    for(node now;!q.empty();)
+    {
+        now=q.top();
+        q.pop();
+        if(vis[now.x]) continue;
+        vis[now.x]=1;
+        for(int i=head[now.x];i;i=nextt[i])
+        {
+            int v=to[i];
+            if(dis[v]>dis[now.x]+val[i])
+            {
+                dis[v]=dis[now.x]+val[i];
+                q.push((node){v,dis[v]}); 
+            }
+        }
+    }
+}
+inline void swap(int &x,int &y) {int tmp=y;y=x;x=tmp;}
+inline int min(int x,int y) {return x>y?y:x;}
+inline int max(int x,int y) {return x>y?x:y;}
+void calc(int s,int t)
+{
+    for(int i=1;i<=m;++i)
+    {
+        int x=e[i].x,y=e[i].y,z=e[i].z;
+        if(min(dist[0][x],dist[0][y])+min(dist[1][x],dist[1][y])+z==dist[0][t]) use[i]++;
+    }
+}
+int main(int argc,char *argv[])
+{
+    Read(n);Read(m); 
+    for(int i=1;i<=2;++i) Read(s[i]),Read(t[i]);
+    for(int a,b,c,i=1;i<=m;++i)
+    {
+        Read(a);Read(b);Read(c);
+        e[i]=(Edge){a,b,c};
+        ins(a,b,c);
+        ins(b,a,c);
+    }
+    for(int i=1;i<=2;++i)
+    {
+        dijkstra(s[i],dist[0]);
+        dijkstra(t[i],dist[1]);
+        calc(s[i],t[i]);
+    }
+    memset(head,0,sizeof(head));
+    cnt=0;
+    for(int i=1;i<=m;++i)
+    {
+        if(use[i]==2)
+        {
+            int x=e[i].x,y=e[i].y,z=e[i].z;
+            if(dist[0][x]>dist[0][y]) swap(x,y);
+            ins(x,y,z);D[y]++;
+        }
+    }
+    int h=0,t=0,Que[N];
+    for(int i=1;i<=n;++i) if(!D[i]) Que[++t]=i;
+    for(int now;h<t;)
+    {
+        now=Que[++h];
+        for(int i=head[now];i;i=nextt[i])
+        {
+            int v=to[i];
+            f[v]=max(f[now]+val[i],f[v]);
+            D[v]--;
+            if(D[v]==0) Que[++t]=v;
+        }
+    }
+    int ans=0;
+    for(int i=1;i<=n;++i) ans=max(ans,f[i]);
+    printf("%d\n",ans);
+    return 0;
+}
+﻿
