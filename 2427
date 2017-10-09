@@ -1,0 +1,120 @@
+#include <ctype.h>
+#include <cstdio>
+#define N 605
+ 
+void read(int &x)
+{
+    x=0;bool f=0;
+    char ch=getchar();
+    while(!isdigit(ch)) {if(ch=='-') f=1;ch=getchar();}
+    while(isdigit(ch)) {x=x*10+ch-'0';ch=getchar();}
+    x=f?(~x)+1:x;
+}
+struct node
+{
+    int next,to;
+}edge[N<<1];
+struct node2
+{
+    int next,to;
+}edge2[N<<1];
+struct thing
+{
+    int v,w;
+}th[N];
+bool in[N],instack[N];
+int head2[N],cnt2,f[N][N],w[N],v[N],stack[N],top,n,m,head[N],cnt,sumcol,col[N],dfn[N],low[N],tim;
+void add(int u,int v)
+{
+    edge[++cnt].next=head[u];
+    edge[cnt].to=v;
+    head[u]=cnt;
+}
+int min(int a,int b){return a>b?b:a;}
+int max(int a,int b){return a>b?a:b;}
+void tarjan(int x)
+{
+    dfn[x]=low[x]=++tim;
+    instack[x]=1;
+    stack[++top]=x;
+    for(int i=head[x];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(instack[v]) low[x]=min(low[x],dfn[v]);
+        if(!dfn[v]) tarjan(v),low[x]=min(low[x],low[v]);
+    }
+    if(low[x]==dfn[x])
+    {
+        int t;
+        sumcol++;
+        do
+        {
+            t=stack[top--];
+            instack[t]=false;
+            col[t]=sumcol;
+            th[sumcol].v+=v[t];
+            th[sumcol].w+=w[t];
+        }while(t!=x);
+    }
+}
+void dp(int x)
+{
+    for(int i=head2[x];i;i=edge2[i].next)
+    {
+        dp(edge2[i].to);
+        for(int j=m-th[x].w;j>=0;j--)
+        {
+            for(int k=0;k<=j;k++) f[x][j]=max(f[x][j],f[x][k]+f[edge2[i].to][j-k]);
+        }
+    }
+    for(int j=m;j>=0;j--)
+    {
+        if(j>=th[x].w) f[x][j]=f[x][j-th[x].w]+th[x].v;
+        else f[x][j]=0;
+    }
+}
+void add2(int u,int v)
+{
+    edge2[++cnt2].next=head2[u];
+    edge2[cnt2].to=v;
+    head2[u]=cnt2;
+}
+void rebuild()
+{
+    for(int i=1;i<=n;i++)
+    {
+        for(int j=head[i];j;j=edge[j].next)
+        {
+            int v=edge[j].to;
+            if(col[v]!=col[i])
+            {
+                in[col[v]]=1;
+                add2(col[i],col[v]);
+            }
+        }
+    }
+}
+int main()
+{
+    read(n);read(m);
+    for(int i=1;i<=n;i++) read(w[i]);
+    for(int i=1;i<=n;i++) read(v[i]);
+    for(int x,i=1;i<=n;i++)
+    {
+        read(x);
+        if(x) add(x,i);
+    }
+    for(int i=1;i<=n;i++) if(!dfn[i]) tarjan(i);
+    rebuild();
+    for(int i=1;i<=sumcol;i++)
+    {
+        if(!in[i]) 
+        {
+            in[i]=1;
+            add2(sumcol+1,i);
+        }
+    }
+    dp(sumcol+1);
+    printf("%d",f[sumcol+1][m]);
+    return 0;
+}
