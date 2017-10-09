@@ -1,0 +1,140 @@
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#define N 405
+#define M 1000010 
+#define INF 0x7fffffff
+#define min(a,b) a>b?b:a
+ 
+using namespace std;
+struct node
+{
+    int next,to,flow;
+    node (int next=0,int to=0,int flow=0): next(next),to(to),flow(flow) {}
+}edge[M];
+int cur[M],ex,dep[M],S,T=805,head[M],cnt=1,a,num[N][N],r,c,d,Map[N][N];
+inline void add(int u,int v,int w)
+{
+    edge[++cnt]=node(head[u],v,w);
+    head[u]=cnt;
+}
+inline bool bfs()
+{
+    queue<int>Q;
+    Q.push(S);
+    for(int i=0;i<=T;i++) dep[i]=-1,cur[i]=head[i];
+    dep[S]=0;
+    while(!Q.empty())
+    {
+        int Top=Q.front();
+        Q.pop();
+        for(int i=head[Top];i;i=edge[i].next)
+        {
+            int v=edge[i].to;
+            if(dep[v]==-1&&edge[i].flow>0)
+            {
+                dep[v]=dep[Top]+1;
+                if(v==T) return true;
+                else Q.push(v); 
+            }
+        }
+    }
+    return false;
+}
+inline int dfs(int now,int to,int flow)
+{
+    int rest=0,f;
+    if(now==to) return flow;
+    for(int &i=cur[now];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(edge[i].flow>0&&dep[v]==dep[now]+1&&(f=dfs(v,to,min(flow-rest,edge[i].flow))))
+        {
+            rest+=f;
+            edge[i].flow-=f;
+            edge[i^1].flow+=f;
+            if(flow==rest) break;
+        }
+    }
+    if(rest!=flow) dep[now]=-1;
+    return rest;
+}
+inline int Dinic()
+{
+    int ans=0;
+    while(bfs())
+        ans+=dfs(S,T,INF);
+    return ans;
+}
+int main()
+{
+    scanf("%d%d%d",&r,&c,&d);
+    char ch;
+    for(int i=1;i<=r;i++)
+    {
+        for(int j=1;j<=c;j++)
+        {
+            cin>>ch;
+            Map[i][j]=ch-'0';
+            num[i][j]=++a;
+        }
+    }
+    for(int i=1;i<=r;i++)
+    {
+        for(int j=1;j<=c;j++)
+        {
+            cin>>ch;
+            if(ch=='L')
+            {
+                ex++;
+                add(0,num[i][j],1);
+                add(num[i][j],0,0);
+            }
+        }
+    }
+    for(int i=1;i<=r;i++)
+    {
+        for(int j=1;j<=c;j++)
+        {
+            if(Map[i][j])
+            {
+                add(num[i][j],num[i][j]+N,Map[i][j]);
+                add(num[i][j]+N,num[i][j],0);
+                for(int k=i-d;k<=i+d;k++)
+                {
+                    for(int l=j-d;l<=j+d;l++)
+                    {
+                        if((i!=k||j!=l)&&Map[k][l]&&(((i-k)*(i-k)+(j-l)*(j-l))<=d*d))
+                        {
+                            add(num[i][j]+N,num[k][l],INF);
+                            add(num[k][l],num[i][j]+N,0);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    for(int i=1;i<=d;i++)
+    {
+        for(int j=d+1;j<=r-d;j++)
+        {
+            add(num[j][i]+N,T,INF);
+            add(T,num[j][i]+N,0);
+            add(num[j][c-i+1]+N,T,INF);
+            add(T,num[j][c-i+1]+N,0);
+        }
+    }
+    for(int i=1;i<=d;i++)
+    {
+        for(int j=1;j<=c;j++)
+        {
+            add(num[i][j]+N,T,INF);
+            add(T,num[i][j]+N,0);
+            add(num[r-i+1][j]+N,T,INF);
+            add(T,num[r-i+1][j]+N,0);
+        }
+    }
+    printf("%d",ex-Dinic());
+    return 0;
+}
