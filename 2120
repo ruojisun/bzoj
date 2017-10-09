@@ -1,0 +1,90 @@
+#include <algorithm>
+#include <cstring>
+#include <cstdio>
+#include <cmath>
+#define N 1000500
+using namespace std;
+struct node
+{
+    int l,r,id,bel,tim,ans;
+}s[N];
+bool cmp(node a,node b)
+{
+    if(a.bel==b.bel) return a.r<b.r;
+    else return a.bel<b.bel;
+}
+bool comp(node a,node b)
+{
+    return a.id<b.id;
+}
+struct nodee
+{
+    int bef,aft,pos;
+}ss[N];
+int C,n,m,col[N],tot,now,ans,sum[N];
+void update(int x,int y)
+{
+    sum[x]+=y;
+    if(y==1&&sum[x]==1) ans++;
+    else if(y==-1&&!sum[x]) ans--;
+}
+int Main()
+{
+    scanf("%d%d",&n,&m);
+    C=(int)sqrt((double)n);
+    for(int i=1;i<=n;++i) scanf("%d",&col[i]);
+    char opt[5];
+    for(int x,y;m--;)
+    {
+        scanf("%s%d%d",opt,&x,&y);
+        if(opt[0]=='Q')
+        {
+            s[++tot].l=x;
+            s[tot].r=y;
+            s[tot].bel=(x-1)/C+1;
+            s[tot].tim=now;
+            s[tot].id=tot;
+        }
+        else if(opt[0]=='R')
+        {
+            ss[++now].pos=x;
+            ss[now].aft=y;
+        }
+    }
+    now=0;
+    sort(s+1,s+1+tot,cmp);
+    for(int L=1,R=0,i=1;i<=tot;++i)
+    {
+        while(now<s[i].tim)
+        {
+            now++;
+            ss[now].bef=col[ss[now].pos];
+            if(ss[now].pos<=R&&ss[now].pos>=L)
+            {
+                update(ss[now].bef,-1);
+                update(ss[now].aft,1);
+            }
+            col[ss[now].pos]=ss[now].aft;
+        }
+        while(now>s[i].tim)
+        {
+            if(ss[now].pos<=R&&ss[now].pos>=L)
+            {
+                update(ss[now].aft,-1);
+                update(ss[now].bef,1);
+            }
+            col[ss[now].pos]=ss[now].bef;
+            now--;
+        }
+        while(L<s[i].l) update(col[L++],-1);
+        while(L>s[i].l) update(col[--L],1);
+        while(R<s[i].r) update(col[++R],1);
+        while(R>s[i].r) update(col[R--],-1);
+        s[i].ans=ans;
+    }
+    sort(s+1,s+1+tot,comp);
+    for(int i=1;i<=tot;++i) printf("%d\n",s[i].ans);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
