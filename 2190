@@ -1,0 +1,30 @@
+#include <cstdio>
+
+int get_phi(int n)
+{
+    int ans=n;
+    if(n%2==0) 
+    {
+        while(n%2==0) n/=2;
+        ans/=2;
+    }
+    for(int i=3;i*i<=n;i+=2)
+    {
+        if(n%i==0)
+        {
+            while(n%i==0)  n/=i;
+            ans=ans/i*(i-1);
+        }
+    }
+    if(n>1) ans=ans/n*(n-1);
+    return ans;
+}
+int n,ans;
+int main()
+{
+    scanf("%d",&n);
+    for(int i=1;i<n;i++)
+        ans+=i==1?1:get_phi(i);
+    printf("%d",ans*2+1);
+    return 0;
+}
