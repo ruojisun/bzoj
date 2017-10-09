@@ -1,0 +1,56 @@
+#include <cstring>
+#include <cstdio>
+#define N 500
+#define MOD 10
+ 
+inline int max(int a,int b) {return a>b?a:b;}
+struct node
+{
+    int a[N];
+    inline node operator+(node b)
+    {
+        node c;
+        c.a[0]=max(a[0],b.a[0])+1;
+        for(int i=1;i<=c.a[0];++i)
+        {
+            c.a[i]+=a[i]+b.a[i];
+            c.a[i+1]+=c.a[i]/MOD;
+            c.a[i]=c.a[i]%MOD;
+        }
+        for(;c.a[0]>1&&c.a[c.a[0]]==0;c.a[0]--);
+        return c;
+    }
+    node() {memset(a,0,sizeof(a));}
+}ans[N];
+int G[N][N],n;
+node operator*(int x,node b)
+{
+    int t=0;
+    node c;
+    c.a[0]=b.a[0]+1;
+    for(int i=1;i<=c.a[0];++i) c.a[i]=b.a[i]*x;
+    for (int i=1;i<=c.a[0];i++)
+    {
+        c.a[i]+=t;
+        if (c.a[i]>=MOD){t=c.a[i]/MOD;c.a[i]%=MOD;}
+        else t=0;
+    }
+    for(;t;t/=MOD) c.a[++c.a[0]]=t%MOD;
+    for(;c.a[0]>1&&c.a[c.a[0]]==0;c.a[0]--);
+    return c;
+}
+int Main()
+{
+    scanf("%d",&n);
+    ans[1].a[1]=0;ans[2].a[1]=1,ans[2].a[0]=ans[1].a[0]=1;
+/*  for(int i=1;i<=n;++i)
+     for(int j=1;j<=n;++j)
+      scanf("%d",&G[i][j]);*/
+    for (int i=3;i<=n;i++) ans[i]=(i-1)*(ans[i-1]+ans[i-2]);
+    printf("%d",ans[n].a[ans[n].a[0]]);
+    for (int i=ans[n].a[0]-1;i>=1;i--) printf("%d",ans[n].a[i]);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
+﻿
