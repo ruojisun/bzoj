@@ -1,0 +1,46 @@
+#include <cstdio>
+typedef long long LL;
+LL x,y,m,n,l;
+LL gcd(LL m,LL n){return m%n==0?n:gcd(n,m%n);} 
+LL exgcd(LL a,LL b,LL &x,LL &y)
+{
+    if(!b)
+    {
+        x=1;
+        y=0;
+        return a;
+    }
+    LL gcd=exgcd(b,a%b,x,y);
+    LL tmp=x;
+    x=y;
+    y=tmp-a/b*y;
+    return gcd;
+}
+int main()
+{
+    scanf("%lld%lld%lld%lld%lld",&x,&y,&m,&n,&l);
+    LL a=n-m,b=x-y;
+    if(a<0)
+    {
+        a=-a;
+        b=-b;
+    }
+    LL x1,y1;
+    LL r=gcd(a,l);
+    if(b%r)
+    {
+        printf("Impossible");
+        return 0;
+    }
+    else
+    {
+        LL L=l;
+        LL rr=exgcd(a,L,x1,y1);
+        a/=rr;b/=rr;L/=rr;
+        LL ans=((x1*b)%L+L)%L;
+        while(!ans) ans+=L;
+        printf("%lld",ans);
+    }
+    return 0;
+}
+﻿
