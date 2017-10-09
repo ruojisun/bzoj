@@ -1,0 +1,61 @@
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#define N 1500000
+typedef long long LL;
+int nextt[N<<1],to[N<<1],head[N],cnt=1,n,V[N],edge,S,T;
+LL f[N][3],sum;
+bool flag[N];
+inline void ins(int u,int v)
+{
+    nextt[++cnt]=head[u];
+    to[cnt]=v;
+    head[u]=cnt;
+}
+inline LL max(LL a,LL b){return a>b?a:b;}
+void dfs(int now,int pre)
+{
+    flag[now]=1;
+    for(int i=head[now];i;i=nextt[i])
+    {
+        int v=to[i];
+        if((i^1)==pre) continue;
+        if(flag[v]) S=now,T=v,edge=i;
+        else dfs(v,i);
+    }
+}
+void dfs1(int x,int pre)
+{
+    f[x][0]=0,f[x][1]=V[x];
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if((i^1)==pre||i==edge||(i^1)==edge) continue;
+        dfs1(v,i);
+        f[x][0]+=max(f[v][1],f[v][0]);
+        f[x][1]+=f[v][0];
+    }
+}
+int Main()
+{
+    scanf("%d",&n);
+    for(int t,i=1;i<=n;++i)
+    {
+        scanf("%d%d",&V[i],&t);
+        ins(i,t);ins(t,i);
+    }
+    for(int i=1;i<=n;++i)
+    {
+        if(flag[i]) continue;
+        dfs(i,-1);
+        dfs1(S,-1);
+        long long ans1=f[S][0];
+        dfs1(T,-1);
+        sum+=max(ans1,f[T][0]);
+    }
+    printf("%lld",sum);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
+﻿
