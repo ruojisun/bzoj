@@ -1,0 +1,30 @@
+#include<cstring>
+#include<cstdio>
+#define N 110
+#define Mod 999983
+typedef long long LL;
+int n,m,i,j,k;
+LL f[N][N][N];
+int main()
+{
+    scanf("%d%d",&n,&m);
+    f[0][0][0]=1;
+    for(int i=0;i<n;++i)
+     for(int j=0;j<=m;++j)
+      for(int k=0;k<=m-j;++k)
+       if(f[i][j][k])
+       {
+           f[i+1][j][k]=(f[i+1][j][k]+f[i][j][k])%Mod;
+           f[i+1][j+1][k]=(f[i+1][j+1][k]+f[i][j][k]*(m-j-k))%Mod;
+           if(j>=1) f[i+1][j-1][k+1]=(f[i+1][j-1][k+1]+f[i][j][k]*j)%Mod;
+           if(m-j-k>=2) f[i+1][j+2][k]=(f[i+1][j+2][k]+f[i][j][k]*((m-j-k)*(m-j-k-1)/2))%Mod;
+           if(j>=1&&m-j-k>=1) f[i+1][j][k+1]=(f[i+1][j][k+1]+f[i][j][k]*(j*(m-j-k)))%Mod;
+           if(j>=2) f[i+1][j-2][k+2]=(f[i+1][j-2][k+2]+f[i][j][k]*(j*(j-1)/2))%Mod;
+       }
+    LL ans=0;
+    for(int j=0;j<=m;++j)
+     for(int k=0;k<=m-j;++k)
+      ans=(ans+f[n][j][k])%Mod;
+    printf("%lld",ans);
+    return 0;
+}
