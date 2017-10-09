@@ -1,0 +1,155 @@
+#include <algorithm>
+#include <cstdio>
+#include <vector>
+#define N 100005
+ 
+using namespace std;
+int nextt[N<<1],to[N<<1],head[N<<1],cnt;
+int xy[N],pj[N],n,m,ls[N*40],rs[N*40],sum[N*40],Max[N*40],tot,rt[N],w[N],all,dep[N],fa[N],siz[N],dfn[N],top[N],tim,belong[N];
+inline int max(int a,int b) {return a>b?a:b;}
+inline void ins(int x,int y)
+{
+    nextt[++cnt]=head[x];
+    to[cnt]=y;
+    head[x]=cnt;
+}
+void dfs1(int x)
+{
+    dep[x]=dep[fa[x]]+1;
+    siz[x]=1;
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(fa[x]!=v)
+        {
+            fa[v]=x;
+            dfs1(v);
+            siz[x]+=siz[v]; 
+        }
+    }
+}
+void dfs2(int x)
+{
+    if(!top[x]) top[x]=x;
+    int pos=0;
+    belong[x]=++tim;
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(fa[x]!=v&&siz[pos]<siz[v]) pos=v;
+    }
+    if(pos) top[pos]=top[x],dfs2(pos);
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(fa[x]!=v&&v!=pos) dfs2(v);
+    }
+}
+inline void pushup(int rt)
+{
+    Max[rt]=max(Max[ls[rt]],Max[rs[rt]]);
+    sum[rt]=sum[ls[rt]]+sum[rs[rt]];
+}
+void update(int l,int r,int &y,int t,int v)
+{
+    if(!y) y=++tot;
+    if(l==r) {Max[y]=sum[y]=v;return;} 
+    int mid=(l+r)>>1;
+    if(t<=mid) update(l,mid,ls[y],t,v);
+    else update(mid+1,r,rs[y],t,v);
+    pushup(y);
+}
+int asksum(int y,int l,int r,int L,int R)
+{
+    if(!y) return 0;
+    if(l==L&&r==R) return sum[y];
+    int mid=(l+r)>>1;
+    if(L>mid) return asksum(rs[y],mid+1,r,L,R);
+    else if(R<=mid) return asksum(ls[y],l,mid,L,R);
+    else return asksum(ls[y],l,mid,L,mid)+asksum(rs[y],mid+1,r,mid+1,R);
+}
+int askmax(int y,int l,int r,int L,int R)
+{
+    if(!y) return 0;
+    if(l==L&&r==R) return Max[y];
+    int mid=(l+r)>>1;
+    if(L>mid) return askmax(rs[y],mid+1,r,L,R);
+    else if(R<=mid) return askmax(ls[y],l,mid,L,R);
+    else return max(askmax(ls[y],l,mid,L,mid),askmax(rs[y],mid+1,r,mid+1,R));
+}
+void swap(int &m,int &n) {m^=n^=m^=n;}
+int lca(int x,int y)
+{
+    for(;top[x]!=top[y];x=fa[top[x]])
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+    return dep[x]<dep[y]?x:y;
+}
+int solvesum(int col,int x,int y)
+{
+    int ret=0;
+    for(;top[x]!=top[y];x=fa[top[x]])
+    {
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+        ret+=asksum(rt[col],1,n,belong[top[x]],belong[x]);
+    }
+    if(dep[x]<dep[y]) swap(x,y);
+    ret+=asksum(rt[col],1,n,belong[y],belong[x]);
+    return ret;
+}
+int solvemax(int col,int x,int y)
+{
+    int ret=0xefefefef;
+    for(;top[x]!=top[y];x=fa[top[x]])
+    {
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+        ret=max(ret,askmax(rt[col],1,n,belong[top[x]],belong[x]));
+    }
+    if(dep[x]<dep[y]) swap(x,y);
+    ret=max(ret,askmax(rt[col],1,n,belong[y],belong[x]));
+    return ret;
+}
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int i=1;i<=n;++i) scanf("%d%d",&pj[i],&xy[i]);
+    for(int x,y,i=1;i<n;++i)
+    {
+        scanf("%d%d",&x,&y);
+        ins(x,y);
+        ins(y,x);
+    }
+    dfs1(1);dfs2(1);
+    for(int i=1;i<=n;++i) update(1,n,rt[xy[i]],belong[i],pj[i]);
+    char str[5];
+    for(int x,y,t;m--;)
+    {
+        scanf("%s%d%d",str,&x,&y);
+        if(str[0]=='C')
+        {
+            if(str[1]=='C')
+            {
+                update(1,n,rt[xy[x]],belong[x],0),
+                xy[x]=y,
+                update(1,n,rt[xy[x]],belong[x],pj[x]);
+            }
+            else if(str[1]=='W')
+            {
+                update(1,n,rt[xy[x]],belong[x],y);
+                pj[x]=y;
+            }
+        }
+        else if(str[0]=='Q')
+        {
+            if(str[1]=='S')
+            {
+                t=lca(x,y);
+                int tmp=0;
+                tmp=solvesum(xy[x],x,t)+solvesum(xy[x],y,t);
+                xy[x]==xy[t]?tmp-=pj[t]:1;
+                printf("%d\n",tmp);
+            }
+            else if(str[1]=='M') t=lca(x,y),printf("%d\n",max(solvemax(xy[x],x,t),solvemax(xy[x],y,t)));;
+        }
+    }
+    return 0;
+}
