@@ -1,0 +1,86 @@
+#include <ctype.h>
+#include <cstdio>
+#define M 50050
+#define N 10050
+void read(int &x)
+{
+    x=0;bool f=0;
+    char ch=getchar();
+    while(!isdigit(ch))
+    {
+        if(ch=='-') f=1;
+        ch=getchar();
+    }
+    while(isdigit(ch))
+    {
+        x=x*10+ch-'0';
+        ch=getchar(); 
+    }
+    x=f?(~x)+1:x;
+}
+struct node
+{
+    int pre,next,to;
+}edge[M];
+int min(int a,int b) {return a>b?b:a;} 
+int QLT[N],ans,num,out[N],n,m,head[M],cnt,dfn[N],sumcol,col[N],low[N],T,Stack[N<<1],top;
+bool vis[N],instack[N];
+void add(int i,int j)
+{
+    cnt++;
+    edge[cnt].pre=i;
+    edge[cnt].next=head[i];
+    edge[cnt].to=j;
+    head[i]=cnt;
+}
+void tarjan(int x)
+{
+    low[x]=dfn[x]=++T;
+    Stack[++top]=x;
+    vis[x]=1;
+    instack[x]=1;
+    for(int i=head[x];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(instack[v]) low[x]=min(low[x],dfn[v]);
+        else if(!vis[v])
+        {
+            tarjan(v);
+            low[x]=min(low[x],low[v]);
+        }
+    }
+    if(dfn[x]==low[x])
+    {
+        sumcol++;
+        while(x!=Stack[top])
+        {
+            QLT[sumcol]++;
+            instack[Stack[top]]=0;
+            col[Stack[top--]]=sumcol;
+        }
+        instack[Stack[top]]=0;
+        col[Stack[top--]]=sumcol;
+        QLT[sumcol]++;
+    }
+}
+int main()
+{
+    read(n);read(m);
+    for(int x,y,i=1;i<=m;i++)
+    {
+        read(x);
+        read(y);
+        add(x,y); 
+    }
+    for(int i=1;i<=n;i++) if(!vis[i]) tarjan(i);
+    for(int i=1;i<=m;i++)
+    {
+        int u=edge[i].pre,v=edge[i].to;
+        if(col[v]!=col[u])
+            out[col[u]]++;
+    }
+    for(int i=1;i<=sumcol;i++) if(!out[i]) num++,ans=QLT[i];
+    num!=1?printf("0"):printf("%d\n",ans);
+    return 0;
+}
+﻿
