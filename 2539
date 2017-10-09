@@ -1,0 +1,145 @@
+#include <cstring>
+#include <string>
+#include <cstdio>
+#include <queue>
+#include <cmath>
+#define inf 0x7fffffff
+#define fwq 0xefefefef
+#define N 200
+ 
+using namespace std;
+typedef long long LL;
+char name[40];
+bool vis[N];
+int f[N],trie[N*100][27],siz,Num[N*100],pre[N],dis[N],Max,n,Map[N][N],flow[N][N],x[N],y[N];
+void ins(char *a,int num)
+{
+    int p=1;
+    for(char *q=a;*q;++q)
+    {
+        int id=*q-'a';
+        if(!trie[p][id]) trie[p][id]=++siz;
+        p=trie[p][id];
+    }
+    Num[p]=num;
+}
+int Get(char *a)
+{
+    int p=1;
+    for(char *q=a;*q;++q)
+    {
+        int id=*q-'a';
+        p=trie[p][id];
+    }
+    return Num[p];
+}
+inline int min(int a,int b) {return a>b?b:a;}
+bool spfa(int s,int t)
+{
+    for(int i=s;i<=t;++i) f[i]=inf,dis[i]=fwq,vis[i]=0;
+    dis[s]=pre[s]=0;
+    queue<int>q;
+    q.push(s);
+    for(int now;!q.empty();)
+    {
+        now=q.front();q.pop();
+        vis[now]=0;
+        for(int j=s;j<=t;++j)
+        {
+            if(dis[j]<dis[now]+Map[now][j]&&flow[now][j]>0)
+            {
+                dis[j]=dis[now]+Map[now][j];
+                pre[j]=now;
+                f[j]=min(f[now],flow[now][j]);
+                if(!vis[j])
+                {
+                    vis[j]=1;
+                    q.push(j); 
+                }
+            }
+        }
+    }
+    return dis[t]!=fwq;
+}
+int update(int s,int t)
+{
+    int x=f[t];
+    for(int i=t;i!=s&&i;i=pre[i])
+    {
+        flow[pre[i]][i]-=x;
+        flow[i][pre[i]]+=x;
+    }
+    return dis[t]*x;
+}
+int Dinic(int s,int t)
+{
+    int ans=0;
+    for(;spfa(s,t);ans+=update(s,t));
+    return ans;
+}
+inline bool iscross(int a,int b,int c)
+{
+    if((x[a]-x[b])*(y[b]-y[c])==(x[b]-x[c])*(y[a]-y[b]))
+    {
+        if (y[a]==y[c])
+            return (x[a]<x[b]&&x[b]<x[c])||(x[c]<x[b]&&x[b]<x[a]);
+        else
+            return (y[a]<y[b]&&y[b]<y[c])||(y[c]<y[b]&&y[b]<y[a]);
+    }
+    return false;
+}
+LL calc(LL x1,LL y1,LL x2,LL y2) {return (x1-x2)*(x1-x2)+(y1-y2)*(y1-y2);}
+void init()
+{
+    for(int i=1;i<=n;++i)
+        for(int j=n+1;j<=n*2;++j)
+            if(calc(x[i],y[i],x[j],y[j])>Max*Max)
+                Map[i][j]=0;
+            else
+            {
+                int k; 
+                for (k=1;k<=n*2+1;k++)
+                    if (k!=i && k!=j && iscross(i,k,j))
+                        break;
+                Map[i][j]=k>n*2?1:0;
+            }
+}
+int Main()
+{
+    scanf("%d%d",&Max,&n);
+    for(int i=1;i<=n*2;++i)
+    {
+        scanf("%d%d",&x[i],&y[i]);
+        scanf("%s",name);
+        int len=strlen(name);
+        for(int j=0;j<len;++j) if(name[j]>='A'&&name[j]<='Z') name[j]+=32;
+        ins(name,i);
+    }
+    init();
+    char name1[50],name2[50];
+    for(int yf;;)
+    {
+        scanf("%s",name1);
+        if(name1[0]=='E'&&name1[1]=='n'&&name1[2]=='d'&&strlen(name1)==3) break;
+        int len=strlen(name1);
+        for(int i=0;i<len;++i) if(name1[i]>='A'&&name1[i]<='Z') name1[i]+=32;
+        scanf("%s",name2);
+        len=strlen(name2);
+        for(int i=0;i<len;++i) if(name2[i]>='A'&&name2[i]<='Z') name2[i]+=32;
+        int a=Get(name1),b=Get(name2);
+        if(a>b) swap(a,b);
+        scanf("%d",&yf);
+        if(Map[a][b]!=0) Map[a][b]=yf,Map[b][a]=-yf,flow[a][b]=1,flow[b][a]=0;
+    }
+    int s=0,t=n*2+1;
+    for(int i=1;i<=n;++i) Map[s][i]=0,flow[s][i]=1,Map[i][s]=0,flow[i][s]=0;
+    for(int i=n+1;i<=n*2;++i) Map[i][t]=0,flow[i][t]=1,Map[t][i]=0,flow[t][i]=0;
+    for(int i=1;i<=n;++i)
+     for(int j=n+1;j<=n*2;++j)
+       if(Map[i][j]==1)
+         flow[i][j]=1,flow[j][i]=0,Map[i][j]=1,Map[j][i]=-1;
+    printf("%d\n",Dinic(s,t));
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]) {;}
