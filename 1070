@@ -1,0 +1,100 @@
+#include <ctype.h>
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#define M 50005
+#define inf 0x7fffffff
+using namespace std;
+void read(int &x)
+{
+    x=0;bool f=0;
+    register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(;isdigit(ch);ch=getchar()) x=x*10+ch-'0';
+    x=f?(~x)+1:x;
+}
+struct Edge
+{
+    int next,to,flow,value;
+    Edge (int next=0,int to=0,int flow=0,int value=0) : next(next),to(to),flow(flow),value(value) {}
+}edge[M<<1];
+bool vis[M<<1];
+int ti[80][80],m,n,head[M<<1],cnt=1,fa[M<<1],dis[M<<1];
+void insert(int u,int v,int w,int l)
+{
+    edge[++cnt]=Edge(head[u],v,w,l);
+    head[u]=cnt;
+}
+bool spfa(int s,int t)
+{
+    for(int i=0;i<=t;i++) {dis[i]=inf;vis[i]=0;} 
+    vis[s]=1;
+    dis[s]=0;
+    fa[s]=0;
+    queue<int>q;
+    q.push(s);
+    while(!q.empty())
+    {
+        int x=q.front();
+        q.pop();
+        vis[x]=0;
+        for(int i=head[x];i;i=edge[i].next)
+        {
+            int v=edge[i].to;
+            if(dis[v]>dis[x]+edge[i].value&&edge[i].flow>0)
+            {
+                dis[v]=dis[x]+edge[i].value;
+                fa[v]=i;
+                if(!vis[v])
+                {
+                    vis[v]=1;
+                    q.push(v); 
+                }
+            }
+        }
+    }
+    return dis[t]<inf;
+}
+int dinic(int s,int t)
+{
+    int cost=0;
+    for(;spfa(s,t);)
+    {
+        int x=dis[t];
+        for(int i=t;i!=s;i=edge[fa[i]^1].to)
+        {
+            edge[fa[i]].flow-=x;
+            edge[fa[i]^1].flow+=x;
+        }
+        cost+=dis[t];
+    }
+    return cost;
+}
+int main()
+{
+    read(m);
+    read(n);
+    int s=0,t=n*m+n+1;
+    for(int i=1;i<=n;i++)
+        for(int j=1;j<=m;j++)
+            read(ti[i][j]);
+    for(int i=1;i<=m;i++)
+     for(int j=1;j<=n;j++)
+      for(int k=1;k<=n;k++)
+      {
+          insert((i-1)*n+j,n*m+k,1,ti[k][i]*j);
+          insert(n*m+k,(i-1)*n+j,0,-ti[k][i]*j);
+      }
+    for(int i=1;i<=m*n;i++)
+    {
+        insert(s,i,1,0);
+        insert(i,s,0,0);
+    }
+    for(int i=n*m+1;i<t;i++)
+    {
+        insert(i,t,1,0);
+        insert(t,i,0,0);
+    }
+    printf("%.2lf",dinic(s,t)*1.0/n);
+    return 0;
+}
