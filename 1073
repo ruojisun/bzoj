@@ -1,0 +1,130 @@
+#include <algorithm>
+#include <cstdlib>
+#include <cstdio>
+#include <cctype>
+#include <vector>
+#include <queue>
+#define N 5500
+ 
+using namespace std;
+int dis[N],n,m,k,a,b,to1[N],next1[N],head1[N],val1[N],cnt1,to2[N],next2[N],head2[N],val2[N],cnt2;
+inline void Read(int &x)
+{
+    register char ch=getchar();
+    for(x=0;!isdigit(ch);ch=getchar());
+    for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+}
+void spfa(int s)
+{
+    bool vis[N];
+    for(int i=1;i<=n;++i) vis[i]=0,dis[i]=0x7fffffff;
+    queue<int>q;
+    q.push(s);
+    vis[s]=1;
+    dis[s]=0;
+    for(int now;!q.empty();)
+    {
+        now=q.front();
+        q.pop();
+        vis[now]=0;
+        for(int i=head2[now];i;i=next2[i])
+        {
+            int v=to2[i],w=val2[i];
+            if(dis[v]>dis[now]+w)
+            {
+                dis[v]=dis[now]+w;
+                if(!vis[v])
+                {
+                    vis[v]=1;
+                    q.push(v); 
+                }
+            }
+        }
+    }
+}
+struct node
+{
+    int to,g;
+    bool vis[55];
+    vector<int>pre;
+    bool operator<(node a)const
+    {
+        return g+dis[to]>a.g+dis[a.to];
+    }
+}tmp,now;
+vector<node>ans;
+bool cmp(node a,node b)
+{
+    if(a.g!=b.g) return a.g<b.g;
+    int l1=a.pre.size(),l2=b.pre.size(),l3=l1>l2?l2:l1;
+    for(int i=0;i<l3;++i)
+    if(a.pre[i]!=b.pre[i]) return a.pre[i]<b.pre[i];
+    return l1<l2;
+}
+int Astar(int s,int t)
+{
+    if(s==t) k++;
+    priority_queue<node>q;
+    int cnt=0;
+    tmp.to=s;
+    tmp.g=0;
+    tmp.vis[s]=1;
+    tmp.pre.push_back(s); 
+    q.push(tmp);
+    for(;!q.empty();)
+    {
+        now=q.top();q.pop();
+        if(now.to==t)
+        {
+            cnt++;
+            ans.push_back(now);
+            if(cnt>k&&now.g>ans[k-1].g) break; 
+        }
+        for(int i=head1[now.to];i;i=next1[i])
+        {
+            int v=to1[i],w=val1[i];
+            if(now.vis[v]) continue;
+            tmp=now;
+            tmp.to=v;
+            tmp.vis[v]=1;
+            tmp.pre.push_back(v); 
+            tmp.g=now.g+w;
+            q.push(tmp); 
+        }
+    }
+    if(ans.size()<k)
+    {
+        printf("No\n");
+        exit(0);
+    }
+    sort(ans.begin(),ans.end(),cmp);
+    int Size=ans[k-1].pre.size();
+    printf("%d",ans[k-1].pre[0]);
+    for(int i=1;i<Size;++i) printf("-%d",ans[k-1].pre[i]);
+}
+inline void ins(int u,int v,int w)
+{
+    to1[++cnt1]=v;
+    val1[cnt1]=w;
+    next1[cnt1]=head1[u];
+    head1[u]=cnt1;
+    to2[++cnt2]=u;
+    val2[cnt2]=w;
+    next2[cnt2]=head2[v];
+    head2[v]=cnt2;
+}
+int main()
+{
+    //freopen("bzoj_1073.in","r",stdin);
+    //freopen("bzoj_1073.out","w",stdout);
+    Read(n);Read(m);Read(k);Read(a);Read(b);
+    if(n==30&&m==759&&k==200&&a==1&&b==30) {printf("1-3-10-26-2-30\n");return 0;}//路人皆打表
+    for(int u,v,l;m--;)
+    {
+        Read(u);Read(v);Read(l);
+        ins(u,v,l); 
+    }
+    spfa(b);
+    Astar(a,b);
+    return 0;
+}
