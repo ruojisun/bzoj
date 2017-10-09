@@ -1,0 +1,40 @@
+#include <cstdio>
+#include <map>
+#define N 30050
+#define L 260
+#define base 13831
+typedef unsigned long long ull;
+#define rep(a,b,c) for (int i = a; i <= b; i += c)
+#define Rep(a,b,c) for (int j = a; j <= b; j += c)
+#define itera map<ull,int>::iterator 
+#define REP(a,b) for (itera it = a; it != b; it++)
+#define sc second
+ 
+using namespace std;
+ull hash[N], pow[N];
+int n, m, k, ans;
+char s[N][L];
+map<ull, int>q;
+int main(int argc, char *argv[])
+{
+    scanf("%d%d%d", &n, &m, &k);
+    pow[0] = 1;
+    rep(1, m, 1) pow[i] = pow[i - 1] * base;
+    rep(1, n, 1) scanf("%s", s[i]);
+    rep(1, n, 1)
+     Rep(0 ,m - 1, 1)
+      hash[i] = hash[i] * base + s[i][j];
+    rep(0, m - 1, 1)
+    {
+        q.clear();
+        Rep(1, n, 1)
+        {
+            ull h = hash[j] - s[j][i] * pow[m - i - 1];
+            ++q[h];
+        }
+        REP(q.begin(), q.end())
+         if(it -> sc) ans += it -> sc * (it -> sc - 1) / 2;
+    }
+    printf("%d\n", ans);
+    return 0;
+}
