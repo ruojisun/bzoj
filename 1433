@@ -1,0 +1,100 @@
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#define N 50000
+using namespace std;
+int T,n,nextt[N],to[N],flow[N],head[N],cnt=1,dep[N],zx[N],ans;
+inline void init()
+{
+    cnt=1;
+    ans=0;
+    memset(head,0,sizeof(head));
+    memset(nextt,0,sizeof(nextt));
+}
+inline void ins(int u,int v,int w)
+{
+    nextt[++cnt]=head[u];
+    to[cnt]=v;
+    flow[cnt]=w;
+    head[u]=cnt;
+}
+bool bfs(int S,int T)
+{
+    for(int i=S;i<=T;++i) dep[i]=-1;
+    queue<int>q;
+    dep[S]=0;
+    q.push(S);
+    for(int now;!q.empty();)
+    {
+        now=q.front();q.pop();
+        for(int i=head[now];i;i=nextt[i])
+        {
+            int v=to[i];
+            if(dep[v]==-1&&flow[i])
+            {
+                dep[v]=dep[now]+1;
+                if(v==T) return true;
+                q.push(v); 
+            }
+        }
+    }
+    return false;
+}
+int dfs(int now,int T,int Limit)
+{
+    if(now==T||!Limit) return Limit;
+    int ret=0,f;
+    for(int i=head[now];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(dep[v]==dep[now]+1&&flow[i]&&(f=dfs(v,T,min(Limit,flow[i]))))
+        {
+            ret+=f;
+            Limit-=f;
+            flow[i]-=f;
+            flow[i^1]+=f;
+            if(!Limit) break;
+        }
+    }
+    if(ret!=Limit) dep[now]=-1;
+    return ret;
+}
+int Dinic(int S,int T)
+{
+    for(;bfs(S,T);ans-=dfs(S,T,0x3f3f3f3f));
+    return ans;
+}
+int Main()
+{
+    scanf("%d",&T);
+    for(int n,x;T--;)
+    {
+        init();
+        scanf("%d",&n);
+        int S=0,T=n*n+1;
+        for(int i=1;i<=n;++i)
+        {
+            scanf("%d",&zx[i]);
+            if(zx[i]) ins(i+n,T,1),ins(T,i+n,0);
+        }
+        for(int i=1;i<=n;++i)
+        {
+            scanf("%d",&x);
+            if((!x&&zx[i])||!zx[i]) ins(S,i,1),ins(i,S,0),ans++;
+        }
+        for(int i=1;i<=n;++i)
+        {
+            if(zx[i]) ins(i,i+n,1),ins(i+n,i,0);
+            for(int j=1;j<=n;++j)
+            {
+                scanf("%d",&x);
+                if(x) ins(i,j+n,1),ins(j+n,i,0);
+            }
+        }
+        if(Dinic(S,T)==0) printf("%c%c%c\n",94,95,94);
+        else printf("%c%c%c\n",84,95,84);
+    }
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
