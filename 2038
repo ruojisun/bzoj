@@ -1,0 +1,56 @@
+#include <algorithm>
+#include <cstdio>
+#include <cmath>
+#define N 50005
+using namespace std;
+typedef long long LL;
+struct node
+{
+    int l,r,bel,id;
+    LL a,b;
+}s[N];
+int C,n,m,col[N];
+LL ans,sum[N];
+bool cmp(node a,node b)
+{
+    if(a.bel!=b.bel) return a.bel<b.bel;
+    else return a.r<b.r;
+}
+bool comp(node a,node b) {return a.id<b.id;}
+LL gcd(LL m,LL n) {return !n?m:gcd(n,m%n);}
+void update(int x,int v)
+{
+    ans-=sum[col[x]]*sum[col[x]];
+    sum[col[x]]+=v;
+    ans+=sum[col[x]]*sum[col[x]];
+}
+int Main()
+{
+    scanf("%d%d",&n,&m);
+    C=(int)sqrt((double)n);
+    for(int i=1;i<=n;++i) scanf("%d",&col[i]);
+    for(int i=1;i<=m;++i)
+    {
+        scanf("%d%d",&s[i].l,&s[i].r);
+        s[i].bel=(s[i].l-1)/C+1;
+        s[i].id=i;
+    }
+    sort(s+1,s+1+m,cmp);
+    for(int L=1,R=0,i=1;i<=m;++i)
+    {
+        while(L<s[i].l) update(L++,-1);
+        while(L>s[i].l) update(--L,1);
+        while(R<s[i].r) update(++R,1);
+        while(R>s[i].r) update(R--,-1);
+        s[i].b=1LL*(R-L+1)*(R-L);
+        s[i].a=ans-(R-L+1);
+        LL Gcd=gcd(s[i].a,s[i].b);
+        s[i].a/=Gcd,s[i].b/=Gcd;
+    }
+    sort(s+1,s+1+m,comp);
+    for(int i=1;i<=m;++i) printf("%lld/%lld\n",s[i].a,s[i].b);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
+﻿
