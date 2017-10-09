@@ -1,0 +1,185 @@
+#include <ctype.h>
+#include <cstdio>
+#define N 50000
+ 
+void read(int &x)
+{
+    x=0;
+    bool f=0;
+    char ch=getchar();
+    while(!isdigit(ch)) {if(ch=='-') f=1;ch=getchar();}
+    while(isdigit(ch)) {x=x*10+ch-'0';ch=getchar();}
+    x=f?(~x)+1:x;
+}
+struct Edge
+{
+    int next,to;
+}edge[N<<1];
+ 
+struct Tree
+{
+    int l,r,dis,Max;
+    Tree *left,*right;
+    Tree()
+    {
+        left=right=NULL;
+        dis=Max=0;
+    }
+}*root;
+int dfn[N],Q,dis[N],head[N],cnt,n,top[N],fa[N],dep[N],tim,size[N],belong[N];
+int max(int a,int b) {return a>b?a:b;} 
+void add(int u,int v)
+{
+    ++cnt;
+    edge[cnt].next=head[u];
+    edge[cnt].to=v;
+    head[u]=cnt;
+}
+void dfs1(int x)
+{
+    size[x]=1;
+    dep[x]=dep[fa[x]]+1;
+    for(int i=head[x];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(fa[x]!=v)
+        {
+            fa[v]=x;
+            dfs1(v);
+            size[x]+=size[v];
+        }
+    }
+}
+void dfs2(int x)
+{
+    belong[x]=++tim;
+    dfn[tim]=x;
+    int t=0;
+    if(!top[x]) top[x]=x;
+    for(int i=head[x];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(fa[x]!=v&&size[t]<size[v]) t=v;
+    }
+    if(t) top[t]=top[x],dfs2(t);
+    for(int i=head[x];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(fa[x]!=v&&v!=t) dfs2(v);
+    }
+}
+void build(Tree *&k,int l,int r)
+{
+    k=new Tree;
+    k->l=l;k->r=r;
+    if(l==r)
+    {
+        k->dis=k->Max=dis[dfn[l]];
+        return;
+    }
+    int mid=(l+r)>>1;
+    build(k->left,l,mid);
+    build(k->right,mid+1,r);
+    k->dis=k->left->dis+k->right->dis;
+    k->Max=max(k->left->Max,k->right->Max);
+}
+void Tree_change(Tree *&k,int t,int z)
+{
+    if(k->l==k->r)
+    {
+        k->dis=k->Max=z;
+        return;
+    }
+    int mid=(k->l+k->r)>>1;
+    if(mid>=t) Tree_change(k->left,t,z);
+    else Tree_change(k->right,t,z);
+    k->dis=k->left->dis+k->right->dis;
+    k->Max=max(k->left->Max,k->right->Max);
+}
+void swap(int &x,int &y)
+{
+    int tmp=y;
+    y=x;
+    x=tmp;
+}
+int Tree_Query_Max(Tree *&k,int l,int r)
+{
+    if(k->l==l&&k->r==r) return k->Max;
+    int mid=(k->l+k->r)>>1;
+    if(l>mid) return Tree_Query_Max(k->right,l,r);
+    else if(r<=mid) return Tree_Query_Max(k->left,l,r);
+    else return max(Tree_Query_Max(k->left,l,mid),Tree_Query_Max(k->right,mid+1,r));
+}
+int Chain_Query_Max(int x,int y)
+{
+    int ans=-0x7fffffff;
+    for(;top[x]!=top[y];x=fa[top[x]])
+    {
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+        ans=max(ans,Tree_Query_Max(root,belong[top[x]],belong[x]));
+    }
+    if(belong[x]>belong[y]) swap(x,y);
+    ans=max(ans,Tree_Query_Max(root,belong[x],belong[y]));
+    return ans;
+}
+int Tree_Query_Sum(Tree *&k,int l,int r)
+{
+    if(k->l==l&&k->r==r) return k->dis;
+    int mid=(k->l+k->r)>>1;
+    if(l>mid) return Tree_Query_Sum(k->right,l,r);
+    else if(r<=mid) return Tree_Query_Sum(k->left,l,r);
+    else return Tree_Query_Sum(k->left,l,mid)+Tree_Query_Sum(k->right,mid+1,r);
+}
+int Chain_Query_Sum(int x,int y)
+{
+    int ans=0;
+    for(;top[x]!=top[y];x=fa[top[x]])
+    {
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+        ans+=Tree_Query_Sum(root,belong[top[x]],belong[x]);
+    }
+    if(belong[x]>belong[y]) swap(x,y);
+    ans+=Tree_Query_Sum(root,belong[x],belong[y]);
+    return ans;
+}
+int main()
+{
+    read(n);
+    for(int a,b,i=1;i<n;i++)
+    {
+        read(a);
+        read(b);
+        add(a,b);
+        add(b,a);
+    }
+    for(int i=1;i<=n;i++) read(dis[i]);
+    dfs1(1);
+    dfs2(1);
+    read(Q);
+    root=new Tree;
+    build(root,1,n);
+    char str[11];
+    for(int x,y;Q--;)
+    {
+        scanf("%s",str+1);
+        if(str[1]=='C')
+        {
+            read(x);
+            read(y);
+            Tree_change(root,belong[x],y);
+        }
+        else if(str[2]=='M')
+        {
+            read(x);
+            read(y);
+            printf("%d\n",Chain_Query_Max(x,y));
+        }
+        else
+        {
+            read(x);
+            read(y);
+            printf("%d\n",Chain_Query_Sum(x,y));
+        }
+    }
+    return 0;
+}
