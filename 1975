@@ -1,0 +1,107 @@
+#include<algorithm>
+#include<iostream>
+#include<cstring>
+#include<cstdio>
+#include<queue>
+#define inf 0x3f3f3f3f 
+#define N 200010
+using namespace std;
+int front[5001],nextt[N],to[N];
+int frontt[5001],nexttt[N],too[N];
+double cap[N],capp[N],dis[5001];
+int n,m,tot,tott,src,decc,cntt;
+double k,ans;
+bool inque[N];
+struct node2
+{
+    long long d;
+    double g;
+    friend bool operator <(node2 x,node2 y)
+    {
+        return x.g+dis[x.d]>y.g+dis[y.d];
+    }
+};
+queue<int>q;
+inline void add(int u,int v,double w){to[++tot]=v;nextt[tot]=front[u];front[u]=tot;cap[tot]=w;}
+inline void add1(int u,int v,double w){too[++tott]=v;nexttt[tott]=frontt[u];frontt[u]=tott;capp[tott]=w;}
+void spfa(int src,int decc)
+{
+    for(int i=1;i<=n;i++)
+    {
+        dis[i]=inf;
+        inque[i]=false;
+    }
+    q.push(src);
+    dis[src]=0;
+    inque[src]=1;
+    while(!q.empty())
+    {
+        int now=q.front();
+        q.pop();
+        inque[now]=0;
+        for(int i=front[now];i;i=nextt[i])
+        {
+            int t=to[i];
+            if(dis[t]>dis[now]+cap[i])
+            {
+                dis[t]=dis[now]+cap[i];
+                if(!inque[t])
+                {
+                    q.push(t);
+                    inque[t]=1;
+                }
+            }
+        }
+    }
+}
+void A(int src,int decc)
+{
+    priority_queue<node2>qq;
+    if(src==decc) k++;
+    int cnt=0;
+    node2 z;
+    z.d=src;
+    z.g=0;
+    qq.push(z);
+    while(!qq.empty())
+    {
+        node2 e=qq.top();
+        qq.pop();
+        if(e.d==decc)
+        {
+            cnt++;
+            ans+=e.g;
+            if(ans>k)
+            {
+                printf("%d",cnt-1);
+                exit(0);
+            }
+        }
+        for(int i=frontt[e.d];i;i=nexttt[i])
+        {
+            int t=too[i];
+            node2 c=e;
+            c.d=t;
+            c.g=e.g+capp[i];
+            qq.push(c);
+        }
+    }
+}
+int main()
+{
+    scanf("%d%d",&n,&m);
+    scanf("%lf",&k);
+    src=1;
+    decc=n;
+    for(int i=1;i<=m;i++)
+    {
+        int u,v;
+        double w;
+        scanf("%d%d%lf",&u,&v,&w);
+        add(v,u,w);
+        add1(u,v,w);
+    }
+    spfa(decc,src);
+    A(src,decc);
+    return 0;
+}
