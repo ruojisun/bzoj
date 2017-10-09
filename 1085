@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+using namespace std;
+int goal[7][7]={{0,0,0,0,0,0},{0,1,1,1,1,1},{0,0,1,1,1,1},{0,0,0,2,1,1},{0,0,0,0,0,1},{0,0,0,0,0,0}};
+int T,ans,qp[7][7],q[7][7],fx[8]={1,1,-1,-1,2,2,-2,-2},fy[8]={2,-2,2,-2,1,-1,1,-1};
+bool flag;
+int judge()
+{
+    int ret=0;
+    for(int i=1;i<=5;++i)
+     for(int j=1;j<=5;++j)
+      if(qp[i][j]!=goal[i][j]) ret++;
+    return ret;
+}
+void dfs(int now,int x,int y,int Limit)
+{
+    if(now>Limit||flag) return;
+    int cy=judge();
+    if(now==Limit) if(cy==0) {ans=Limit;flag=1;return;} 
+    if(now+cy-1>Limit) return;//最优性剪枝 目前+差异>限制
+    for(int i=0;i<8;++i)
+    {
+        int tx=x+fx[i],ty=y+fy[i];
+        if(tx>=1&&tx<=5&&ty>=1&&ty<=5)
+        {
+            swap(qp[x][y],qp[tx][ty]);
+            dfs(now+1,tx,ty,Limit);
+            swap(qp[x][y],qp[tx][ty]);
+        }
+    }
+}
+int main()
+{
+    scanf("%d",&T);
+    for(int x,y;T--;)
+    {
+        ans=16;flag=false;
+        for(int i=1;i<=5;++i)
+        {
+            char p;
+            for(int j=1;j<=5;++j)
+            {
+                cin>>p;
+                if(p=='*') q[i][j]=2,x=i,y=j;
+                else q[i][j]=p-'0';
+            }
+        }
+        for(int i=0;i<=15;++i)
+        {
+            for(int j=1;j<=5;++j)
+             for(int k=1;k<=5;++k)
+              qp[j][k]=q[j][k];
+            dfs(0,x,y,i);
+            if(ans==i) break;
+        }
+        if(ans<=15) printf("%d\n",ans);
+        else printf("-1\n");
+    }
+    return 0;
+}
