@@ -1,0 +1,46 @@
+#include <algorithm>
+#include <cstdio>
+#include <cmath>
+#define N 1005
+using namespace std;
+int cnt,n,m,dis[N],x[N],y[N],fa[N];
+double val[N<<1];
+double calc(int x1,int y1,int x2,int y2) {return sqrt((x1-x2)*(x1-x2)+(y1-y2)*(y1-y2));}
+struct Edge
+{
+    int x,y;double z;
+    bool operator<(Edge a)const
+    {
+        return z<a.z;
+    }
+}e[N<<10];
+bool vis[N];
+int find_(int x){return fa[x]==x?x:fa[x]=find_(fa[x]);}
+int Main()
+{
+    scanf("%d",&n);
+    for(int i=1;i<=n;++i) scanf("%d",&dis[i]);
+    scanf("%d",&m);
+    for(int i=1;i<=m;++i) fa[i]=i,scanf("%d%d",&x[i],&y[i]);
+    for(int i=1;i<=m;++i)
+     for(int j=i+1;j<=m;++j)
+      e[++cnt]=(Edge){i,j,calc(x[i],y[i],x[j],y[j])};
+    sort(e+1,e+1+cnt);
+    double maxn=0.0;
+    int num=0;
+    for(int i=1;i<=cnt;++i)
+    {
+        int fx=find_(e[i].x),fy=find_(e[i].y);
+        if(fx==fy) continue;
+        fa[fy]=fx;
+        num++;
+        if(num==m-1) {maxn=e[i].z;break;}
+    }
+    int sum=0;
+    for(int i=1;i<=n;++i) if(dis[i]*1.0>=maxn) sum++;
+    printf("%d",sum);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
+﻿
