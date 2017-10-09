@@ -1,0 +1,40 @@
+#include <algorithm>
+#include <cstdio>
+#define N 50005
+int tot,next[N],pre[N],rt[N],sum[N*100],ls[N*100],rs[N*100],n,m,a[N];
+void update(int &y,int l,int r,int t)
+{
+    sum[++tot]=sum[y];
+    ls[tot]=ls[y];
+    rs[tot]=rs[y];
+    ++sum[y=tot];
+    if(l==r) return;
+    int mid=(l+r)>>1;
+    if(t<=mid) update(ls[y],l,mid,t);
+    else update(rs[y],mid+1,r,t);
+}
+void getnext()
+{
+    for(int i=n;i>=1;--i) next[i]=pre[a[i]]?pre[a[i]]:n+1,pre[a[i]]=i; 
+}
+int query(int l,int r,int x,int y,int t)
+{
+    if(l==r) return t>l?sum[y]-sum[x]:0;
+    int mid=(l+r)>>1;
+    if(t<=mid) return query(l,mid,ls[x],ls[y],t)+sum[rs[y]]-sum[rs[x]];
+    else return query(mid+1,r,rs[x],rs[y],t);
+}
+int main()
+{
+    scanf("%d",&n);
+    for(int i=1;i<=n;++i) scanf("%d",&a[i]);
+    getnext();
+    for(int i=1;i<=n;++i) rt[i]=rt[i-1],update(rt[i],1,n+1,next[i]);
+    scanf("%d",&m);
+    for(int l,r;m--;)
+    {
+        scanf("%d%d",&l,&r);
+        printf("%d\n",query(1,n+1,rt[l-1],rt[r],r));
+    }
+    return 0;
+}
