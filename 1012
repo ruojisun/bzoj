@@ -1,0 +1,60 @@
+#include <bits/stdc++.h>
+using namespace std;
+#define N 200005
+typedef long long LL;
+
+void read(LL &x)
+{
+    x=0;bool f=0;
+    char ch=getchar();
+    while(!isdigit(ch))
+    {
+        if(ch=='-') f=1;
+        ch=getchar();
+    }
+    while(isdigit(ch))
+    {
+        x=x*10+ch-'0';
+        ch=getchar();
+    }
+    x=f?(~x)+1:x;
+}
+LL Num[N],s[N],top,cnt,a[N],M,D,t=0;
+int main()
+{
+    read(M);
+    read(D);
+    char str[4];
+    for(LL x;M--;)
+    {
+        scanf("%s",str+1);
+        switch(str[1])
+        {
+            case 'A':
+            {
+                scanf("%lld",&x);
+                LL y=(x+t)%D;
+                a[++cnt]=y;
+                while(top&&a[s[top]]<=y) top--;
+                s[++top]=cnt;
+                break;
+            }
+            case 'Q':
+            {
+                scanf("%lld",&x);
+                int l=1,r=top;
+                while(l<r)
+                {
+                    int mid=(l+r)>>1;
+                    if(s[mid]<cnt-x+1) l=mid+1;
+                    else r=mid;
+                }
+                int y=l;
+                t=a[s[l]];
+                printf("%lld\n",a[s[y]]);
+                break;
+            }
+        }
+    }
+    return 0;
+单调
