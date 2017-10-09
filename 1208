@@ -1,0 +1,145 @@
+#include <ctype.h>
+#include <cstdio>
+#define N 100000
+#define INF 0x7fffffff
+
+inline void read(int &x)
+{
+    x=0;bool f=0;register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(; isdigit(ch);ch=getchar()) x=(x<<3)+(x<<1)+ch-'0';
+    x=f?(~x)+1:x; 
+}
+int ans,n,cn,zr,root,cnt[N],siz[N],data[N],ch[N][2],fa[N];
+inline int son(int x) {return ch[fa[x]][1]==x;}
+inline void pushup(int x)
+{
+    siz[x]=cnt[x];
+    if(ch[x][0]) siz[x]+=siz[ch[x][0]];
+    if(ch[x][1]) siz[x]+=siz[ch[x][1]];
+}
+void rotate(int x)
+{
+    int y=fa[x],z=fa[y],b=son(x),c=son(y),a=ch[x][!b];
+    if(z) ch[z][c]=x;else root=x;fa[x]=z;
+    if(a) fa[a]=y;ch[y][b]=a;
+    ch[x][!b]=y;fa[y]=x;
+    pushup(y);pushup(x);
+}
+int splay(int x)
+{
+    for(int y;y=fa[x];rotate(x))
+        if(fa[y])
+            rotate(son(x)==son(y)?y:x);
+    root=x;
+}
+int getpre()
+{
+    int now=ch[root][0];
+    while(ch[now][1]) now=ch[now][1];
+    return now;
+}
+int getsuc()
+{
+    int now=ch[root][1];
+    while(ch[now][0]) now=ch[now][0];
+    return now;
+}
+void ins(int x)
+{
+    if(!root)
+    {
+        root=++cn;
+        data[cn]=x;
+        siz[cn]=cnt[cn]=1;
+        return;
+    }
+    int y=0,now=root;
+    while(1)
+    {
+        if(data[now]==x)
+        {
+            siz[now]++;
+            cnt[now]++;
+            splay(now);
+            return;
+        }
+        y=now;
+        now=ch[now][x>data[y]];
+        if(!now)
+        {
+            cn++;
+            ch[y][x>data[y]]=cn;
+            fa[cn]=y;
+            data[cn]=x;
+            siz[cn]=cnt[cn]=1;
+            splay(cn);
+            return;
+        }
+    }
+}
+void clear(int x)
+{
+    ch[x][0]=ch[x][1]=siz[x]=cnt[x]=data[x]=fa[x]=0;
+}
+void del()
+{
+    if(cnt[root]>1)
+    {
+        siz[root]--;
+        cnt[root]--;
+        return;
+    }
+    if(!ch[root][0]&&!ch[root][1])
+    {
+        clear(root);
+        root=0;
+        return;
+    }
+    if(!ch[root][0])
+    {
+        int tmp=root;
+        root=ch[root][1];
+        fa[root]=0;
+        clear(tmp);
+        return;
+    }
+    if(!ch[root][1])
+    {
+        int tmp=root;
+        root=ch[root][0];
+        fa[root]=0;
+        clear(tmp);
+        return; 
+    }
+    int tmp=getpre(),pos=root;
+    splay(tmp);
+    ch[root][1]=ch[pos][1];
+    fa[ch[pos][1]]=root;
+    clear(pos);
+    pushup(root);
+}
+int main()
+{
+    read(n);
+    for(int x,y;n--;)
+    {
+        read(x);
+        read(y);
+        if((x&&zr<0)||(!x&&zr>0))
+        {
+            int o,p,pos;
+            ins(y);
+            int v1=getpre(),v2=getsuc();
+            int x1=(v1)?y-data[v1]:INF,x2=(v2)?data[v2]-y:INF;
+            if(x1>x2) o=x2,p=data[v2],pos=v2;
+            else o=x1,p=data[v1],pos=v1;
+            ans=(ans+o)%1000000;
+            del();splay(pos);del();
+        }
+        else ins(y);
+        zr+=x?1:-1;
+    }
+    printf("%d",ans%1000000);
+    return 0;
+}
