@@ -1,0 +1,50 @@
+#include <cstring>
+#include <cstdio>
+#define N 100005
+int ans,n,f[4][4][4][4][3],xl[N],vis[4];
+inline int max(int a,int b) {return a>b?a:b;}
+void swap(int &m,int &n) {int tmp=m;m=n;n=tmp;}
+int pd(int a,int b,int c)
+{
+    vis[0]=vis[1]=vis[2]=vis[3]=0;
+    vis[a]=vis[b]=vis[c]=1;
+    return vis[1]+vis[2]+vis[3];
+}
+int Read()
+{
+    char ch=getchar();
+    return ch=='M'?1:(ch=='B'?2:3);
+}
+int Main()
+{
+    scanf("%d",&n);
+    char ch=getchar();
+    int cur=0,p=1;
+    memset(f,-1,sizeof(f));
+    f[0][0][0][0][cur]=0;
+    for(int pos=1;pos<=n;++pos)
+    {
+     swap(cur,p);
+     int t=Read();
+     for(int i=0;i<=3;++i)
+      for(int j=0;j<=3;++j)
+       for(int k=0;k<=3;++k)
+        for(int l=0;l<=3;++l)
+        {
+            if(f[i][j][k][l][p]!=-1)
+            {
+                f[j][t][k][l][cur]=max(f[j][t][k][l][cur],f[i][j][k][l][p]+pd(t,i,j));
+                f[i][j][l][t][cur]=max(f[i][j][l][t][cur],f[i][j][k][l][p]+pd(t,k,l));
+            }
+        }
+    }
+    for(int i=0;i<=3;++i)
+     for(int j=0;j<=3;++j)
+      for(int k=0;k<=3;++k)
+       for(int l=0;l<=3;++l)
+        ans=max(ans,f[i][j][k][l][cur]);
+    printf("%d\n",ans);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]){;}
