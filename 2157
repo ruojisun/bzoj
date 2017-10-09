@@ -1,0 +1,220 @@
+#include <algorithm>
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#define N 20205
+using namespace std;
+struct Edge
+{
+    int next,to,dis;
+}edge[N<<1];
+int son[N],q,T_dis[N],head[N],cnt,X[N],Y[N],Z[N],n,top[N],dfn[N],pos[N],size[N],tim,dep[N],dad[N];
+void add(int u,int v,int w)
+{
+    edge[++cnt].next=head[u];
+    edge[cnt].to=v;
+    edge[cnt].dis=w;
+    head[u]=cnt;
+}
+struct Tr
+{
+    int dis,Max,Min;
+    bool flag;
+    Tr *left,*right;
+    void change()
+    {
+        dis=-dis;
+        Max=-Max;
+        Min=-Min;
+        swap(Max,Min);
+        flag^=1;
+    }
+    void pushup()
+    {
+        dis=left->dis+right->dis;
+        Max=max(left->Max,right->Max);
+        Min=min(left->Min,right->Min);
+    }
+    void Tree_build(int l,int r)
+    {
+        int mid=(l+r)>>1;
+        if(l==r) {dis=Max=Min=T_dis[mid];return;}
+        (left=new Tr)->Tree_build(l,mid);
+        (right=new Tr)->Tree_build(mid+1,r);
+        pushup();
+    }
+    void pushdown()
+    {
+        if(flag)
+        {
+            left->change();
+            right->change();
+            flag=false;
+        }
+    }
+    void Tree_single_change(int x,int y,int t,int v)
+    {
+        int mid=(x+y)>>1;
+        if(x==y)
+        {
+            dis=Max=Min=v;
+            return;
+        }
+        pushdown();
+        if(t<=mid) left->Tree_single_change(x,mid,t,v);
+        else right->Tree_single_change(mid+1,y,t,v);
+        pushup();
+    }
+    void Tree_change_section(int x,int y,int l,int r)
+    {
+        int mid=(x+y)>>1;
+        if(x==l&&y==r)
+        {
+            change();
+            return;
+        }
+        pushdown();
+        if(l>mid) right->Tree_change_section(mid+1,y,l,r);
+        else if(r<=mid) left->Tree_change_section(x,mid,l,r);
+        else left->Tree_change_section(x,mid,l,mid),right->Tree_change_section(mid+1,y,mid+1,r);
+        pushup();
+    }
+    int Tree_query_sum(int x,int y,int l,int r)
+    {
+        int mid=(x+y)>>1;
+        if(x==l&&y==r) return dis;
+        pushdown();
+        if(l>mid) return right->Tree_query_sum(mid+1,y,l,r);
+        if(r<=mid) return left->Tree_query_sum(x,mid,l,r);
+        return left->Tree_query_sum(x,mid,l,mid)+right->Tree_query_sum(mid+1,y,mid+1,r);
+    }
+    int Tree_query_max(int x,int y,int l,int r)
+    {
+        int mid=(x+y)>>1;
+        if(x==l&&y==r) return Max;
+        pushdown();
+        if(l>mid) return right->Tree_query_max(mid+1,y,l,r);
+        if(r<=mid) return left->Tree_query_max(x,mid,l,r);
+        return max(left->Tree_query_max(x,mid,l,mid),right->Tree_query_max(mid+1,y,mid+1,r));
+    }
+    int Tree_query_min(int x,int y,int l,int r)
+    {
+        int mid=(x+y)>>1;
+        if(x==l&&y==r) return Min;
+        pushdown();
+        if(l>mid) return right->Tree_query_min(mid+1,y,l,r);
+        if(r<=mid) return left->Tree_query_min(x,mid,l,r);
+        return min(left->Tree_query_min(x,mid,l,mid),right->Tree_query_min(mid+1,y,mid+1,r));
+    }
+}*Tree=new Tr;
+void dfs1(int x)
+{
+    dep[x]=dep[dad[x]]+1;
+    size[x]=1;
+    for(int i=head[x];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(dad[x]!=v)
+        {
+            dad[v]=x;
+            dfs1(v);
+            size[x]+=size[v];
+            if(size[v]>size[son[x]])
+            son[x]=v;
+        }
+    }
+}
+void dfs2(int x)
+{
+    if(son[dad[x]]==x) top[x]=top[dad[x]];
+    else top[x]=x;
+    pos[x]=++tim;
+    if(son[x]) dfs2(son[x]);
+    for(int i=head[x];i;i=edge[i].next)
+    if(edge[i].to!=dad[x]&&edge[i].to!=son[x])
+        dfs2(edge[i].to);
+}
+int Chain_query_max(int a,int b)
+{
+    int Max=0xefefefef,fa=top[a],fb=top[b];
+    while(fa!=fb)
+        {
+        if(dep[fa]<dep[fb])
+        swap(a,b),swap(fa,fb);
+        Max=max(Max,Tree->Tree_query_max(1,n,pos[fa],pos[a]));
+        a=dad[fa];fa=top[a];
+    }
+    if(a==b) return Max;
+    if(dep[a]<dep[b]) swap(a,b);
+    return max(Max,Tree->Tree_query_max(1,n,pos[son[b]],pos[a]));;
+}
+int Chain_query_min(int a,int b)
+{
+    int Min=0x3f3f3f3f,fa=top[a],fb=top[b];
+    while(fa!=fb)
+    {
+        if(dep[fa]<dep[fb])
+        swap(a,b),swap(fa,fb);
+        Min=min(Tree->Tree_query_min(1,n,pos[fa],pos[a]),Min);
+        a=dad[fa];fa=top[a];
+    }
+    if(a==b) return Min;
+    if(dep[a]<dep[b]) swap(a,b);
+    return min(Min,Tree->Tree_query_min(1,n,pos[son[b]],pos[a]));
+}
+int Chain_query_sum(int a,int b)
+{
+    int sum=0,fa=top[a],fb=top[b];
+    while(fa!=fb)
+    {
+        if(dep[fa]<dep[fb])
+        swap(a,b),swap(fa,fb);
+        sum+=Tree->Tree_query_sum(1,n,pos[fa],pos[a]);
+        a=dad[fa];fa=top[a];
+    }
+    if(a==b) return sum;
+    if(dep[a]<dep[b]) swap(a,b);
+    return sum+Tree->Tree_query_sum(1,n,pos[son[b]],pos[a]);
+}
+void Chain_change(int a,int b)  
+{
+    int fa=top[a],fb=top[b];
+    while(fa!=fb)
+    {
+        if(dep[fa]<dep[fb])
+        swap(a,b),swap(fa,fb);
+        Tree->Tree_change_section(1,n,pos[fa],pos[a]);
+        a=dad[fa];fa=top[a];
+    }
+    if(a==b) return;
+    if(dep[a]<dep[b])  swap(a,b);
+    Tree->Tree_change_section(1,n,pos[son[b]],pos[a]);
+}
+int main()
+{
+    scanf("%d",&n);
+    for(int x,y,z,i=1;i<n;i++)
+    {
+        scanf("%d%d%d",&x,&y,&z);
+        ++x;++y;
+        X[i]=x;Y[i]=y;Z[i]=z;
+        add(x,y,z);
+        add(y,x,z);
+    }
+    dfs1(1);dfs2(1);
+    for(int i=1;i<n;i++) T_dis[ pos[ dep[X[i]]>dep[Y[i]]?X[i]:Y[i] ] ]=Z[i];
+    Tree->Tree_build(1,n);
+    char str[15];
+    scanf("%d",&q);
+    for(int x,y;q--;)
+    {
+        scanf("%s",str);
+        scanf("%d%d",&x,&y);
+        if(str[0]=='S') printf("%d\n",Chain_query_sum(x+1,y+1));
+        else if(str[1]=='A') printf("%d\n",Chain_query_max(x+1,y+1));
+        else if(str[1]=='I') printf("%d\n",Chain_query_min(x+1,y+1));
+        else if(str[0]=='C') Tree->Tree_single_change(1,n,pos[dep[X[x]]>dep[Y[x]]?X[x]:Y[x]],y);
+        else if(str[0]=='N') Chain_change(x+1,y+1);
+    }
+    return 0;
+}
