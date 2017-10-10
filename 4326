@@ -1,0 +1,140 @@
+#include <ctype.h>
+#include <cstring> 
+#include <cstdio>
+#define M 300005
+
+void read(int &x)
+{
+    x=0;bool f=0;
+    register char ch=getchar();
+    for(; !isdigit(ch); ch=getchar()) if(ch=='-') f=1;
+    for(; isdigit(ch); ch=getchar()) x=(x<<3)+(x<<1)+ch-'0';
+    x=f?(~x)+1:x;
+}
+int Mcost,dis[M],cost[M],n,m,top[M],cnt,pos[M],head[M],tim,siz[M],fa[M],dep[M];
+struct Edge
+{
+    int next,to,dis;
+    Edge (int next=0,int to=0,int dis=0) : next(next),to(to),dis(dis) {}
+}edge[M<<1];
+struct P
+{
+    int u,v,lca,cost;
+    P (int u=0,int v=0,int lca=0,int cost=0) : u(u),v(v),lca(lca),cost(cost) {}
+}p[M<<1];
+void ins(int u,int v,int w)
+{
+    edge[++cnt]=Edge(head[u],v,w);
+    head[u]=cnt;
+}
+void dfs1(int x)
+{
+    dep[x]=dep[fa[x]]+1;
+    siz[x]=1;
+    for(int u=head[x];u;u=edge[u].next)
+    {
+        int v=edge[u].to;
+        if(fa[x]!=v)
+        {
+            dis[v]=dis[x]+edge[u].dis;
+            fa[v]=x;
+            dfs1(v);
+            siz[x]+=siz[v];
+        }
+    }
+}
+void dfs2(int x)
+{
+    if(!top[x]) top[x]=x;
+    pos[x]=++tim;
+    int p=0;
+    for(int u=head[x];u;u=edge[u].next)
+    {
+        int v=edge[u].to ;
+        if(fa[x]!=v&&siz[v]>siz[p]) p=v;
+    }
+    if(p) {top[p]=top[x];dfs2(p);}
+    for(int u=head[x];u;u=edge[u].next)
+    {
+        int v=edge[u].to;
+        if(fa[x]!=v&&v!=p) dfs2(v);
+    }
+}
+void swap(int &x,int &y)
+{
+    int tmp=y;
+    y=x;
+    x=tmp;
+}
+int getlca(int x,int y)
+{
+    for(;top[x]!=top[y];x=fa[top[x]])
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+    return dep[x]<dep[y]?x:y;
+}
+int max(int a,int b) {return a>b?a:b;}
+void dfs3(int x)
+{
+    for(int u=head[x];u;u=edge[u].next)
+    {
+        int v=edge[u].to;
+        if(fa[x]!=v)
+        {
+            dfs3(v);
+            cost[x]+=cost[v];
+        }
+    }
+}
+bool check(int k)
+{
+    memset(cost,0,sizeof(cost));
+    int num=0;
+    for(int i=1;i<=m;i++)
+    {
+        if(p[i].cost>k)
+        {
+            num++;
+            cost[p[i].u]++;
+            cost[p[i].v]++;
+            cost[p[i].lca]-=2;
+        }
+    }
+    dfs3(1);
+    for(int i=1;i<=n;i++) if(cost[i]==num&&dis[i]-dis[fa[i]]>=Mcost-k) return true;
+    return false;
+}
+int main()
+{
+    read(n);
+    read(m);
+    for(int x,y,z,i=1;i<n;i++)
+    {
+        read(x);
+        read(y);
+        read(z);
+        ins(x,y,z);
+        ins(y,x,z);
+    }
+    dfs1(1);dfs2(1);
+    for(int x,y,i=1;i<=m;i++)
+    {
+        read(x);read(y);
+        int Lca=getlca(x,y);
+        int cos=dis[x]+dis[y]-dis[Lca]*2;
+        p[i]=P(x,y,Lca,cos);
+        Mcost=max(Mcost,cos);
+    }
+    int ans,l=0,r=Mcost+1;
+    for(;l<=r;)
+    {
+        int mid=(l+r)>>1;
+        if(check(mid))
+        {
+            r=mid-1;
+            ans=mid;
+        }
+        else l=mid+1;
+    }
+    printf("%d\n",ans);
+    return 0; 
+}
