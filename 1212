@@ -1,0 +1,50 @@
+#include <cstring>
+#include <cstdio>
+#define N 1000050
+#define rep(a,b,c) for(int a=b;a<=c;++a)
+int n,m,L,ans,siz=1,trie[N][26],f[N*10];
+char word[15],text[N*10];
+bool exict[N];
+template<typename T>inline int max(T a,T b) {return a>b?a:b;}
+void ins(char *a)
+{
+	int l=strlen(a),p=1;
+	rep(i,0,l-1)
+	{
+		int id=a[i]-'a';
+		if(!trie[p][id]) trie[p][id]=++siz;
+		p=trie[p][id];
+	}
+	exict[p]=1;
+}
+void query(int k,int now,int nuM)
+{
+	if(k==L||!now) return;
+	if(exict[now]) f[k]=nuM;
+	query(k+1,trie[now][text[k+1]-'a'],nuM);
+}
+int main(int argc,char *argv[])
+{
+	freopen("language.in","r",stdin);
+	freopen("language.out","w",stdout);
+	scanf("%d%d",&n,&m);
+	rep(i,1,n) 
+	{
+		scanf("%s",word);
+		ins(word);
+	}
+	rep(i,1,m)
+	{
+		scanf("%s",text);
+		L=strlen(text);ans=0;
+		query(0,trie[1][text[0]-'a'],i);
+		rep(j,0,L-1)
+		{
+			if(f[j]!=i) continue;
+			ans=j+1;
+			query(j+1,trie[1][text[j+1]-'a'],i);
+		}
+		printf("%d\n",ans);
+	}
+	return 0;
+}
