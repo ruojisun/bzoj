@@ -1,0 +1,125 @@
+#include <ctype.h>
+#include <cstdio>
+#define N 50000
+void read(int &x)
+{
+    x=0;bool f=0;register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(; isdigit(ch);ch=getchar()) x=(x<<3)+(x<<1)+ch-'0';
+    x=f?(~x)+1:x;
+}
+long long ans;
+int data[N],ch[N][2],fa[N],siz[N],cnt[N],root,n,cn;
+inline void pushup(int rt)
+{
+    int l=ch[rt][0],r=ch[rt][1];
+    siz[rt]=siz[l]+siz[r]+cnt[rt];
+}
+inline int son(int x) {return ch[fa[x]][1]==x;}
+inline void rotate(int x)
+{
+    int y=fa[x],z=fa[y],b=son(x),c=son(y),a=ch[x][!b];
+    if(z) ch[z][c]=x;else root=x;fa[x]=z;
+    if(a) fa[a]=y;ch[y][b]=a;
+    ch[x][!b]=y;fa[y]=x;
+    pushup(y);pushup(x);
+}
+void splay(int x,int i)
+{
+    while(fa[x]!=i)
+    {
+        int y=fa[x],z=fa[y];
+        if(z==i) rotate(x);
+        else 
+        {
+            if(son(x)==son(y))
+            {
+                rotate(y);
+                rotate(x); 
+            }
+            else
+            {
+                rotate(x);
+                rotate(x);
+            }
+        }
+    }
+}
+void ins(int &rt,int x)
+{
+    if(rt==0)
+    {
+        rt=++cn;
+        data[cn]=x;
+        siz[cn]=cnt[cn]=1;
+        splay(cn,0);
+        return;
+    }
+    if(data[rt]==x)
+    {
+        cnt[rt]++;
+        siz[rt]++;
+        splay(rt,0);
+        return;
+    }
+    if(x<data[rt])
+    {
+        ins(ch[rt][0],x);
+        fa[ch[rt][0]]=rt;
+        pushup(rt);
+    }
+    else
+    {
+        ins(ch[rt][1],x);
+        fa[ch[rt][1]]=rt;
+        pushup(rt);
+    }
+}
+int getpre(int rt,int x)
+{
+    int p=rt,ret=-1;
+    while(p)
+    {
+        if(x<data[p]) p=ch[p][0];
+        else
+        {
+            ret=p;
+            p=ch[p][1];
+        }
+    }
+    return ret;
+}
+int getsuc(int rt,int x)
+{
+    int p=rt,ret=-1;
+    while(p)
+    {
+        if(x>data[p]) p=ch[p][1];
+        else
+        {
+            ret=p;
+            p=ch[p][0];
+        }
+    }
+    return ret;
+}
+int min(int a,int b) {return a>b?b:a;}
+int main()
+{
+    read(n);
+    for(int a,i=1;i<=n;i++)
+    {
+        read(a); 
+        if(i==1) ans+=a;
+        else
+        {
+            int v1=getpre(root,a),v2=getsuc(root,a);
+            if(v1==-1) ans+=(long long)(data[v2]-a),splay(v2,0);
+            else if(v2==-1) ans+=(long long)(a-data[v1]),splay(v1,0);
+            else ans+=(long long)min(a-data[v1],data[v2]-a),splay(v1,0),splay(v2,0);
+        }
+        ins(root,a);
+    }
+    printf("%lld\n",ans);
+    return 0;
+}
