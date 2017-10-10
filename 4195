@@ -1,0 +1,76 @@
+#include <algorithm>
+#include <cstring>
+#include <cstdio>
+#include <map>
+ 
+using namespace std;
+int num,T,cnt,fa[200500],c[200500];
+struct node
+{
+    int a,b,c;
+}e[200500];
+bool flag=false;
+int find_fa(int x){return x==fa[x]?x:fa[x]=find_fa(fa[x]);}
+void qr(int &x)
+{
+    x=0;bool f=0;
+    char ch=getchar();
+    while(ch>'9'||ch<'0')
+    {
+        if(ch=='-') f=1;
+        ch=getchar();
+    }
+    while(ch>='0'&&ch<='9')
+    {
+        x=x*10+(int)ch-48;
+        ch=getchar();
+    }
+    x=f?(~x)+1:x;
+}
+int main(int argc,char *argv[])
+{
+    qr(T);
+    for(int n;T--;)
+    {
+        qr(n);
+        cnt=0;num=0;flag=false;
+        for(int i=1;i<=n*2;i++) fa[i]=i;
+        for(int i=1;i<=n;i++)
+        {
+            qr(e[i].a);qr(e[i].b);qr(e[i].c);
+            c[++cnt]=e[i].a;
+            c[++cnt]=e[i].b;
+        }
+        sort(c+1,c+1+cnt);
+        int size=unique(c+1,c+1+cnt)-c-1;
+        for(int i=1;i<=n;i++)
+        {
+            e[i].a=lower_bound(c+1,c+1+size,e[i].a)-c;
+            e[i].b=lower_bound(c+1,c+1+size,e[i].b)-c;
+        }
+        for(int i=1;i<=n;i++)
+        {
+            if(e[i].c==1)
+            {
+                int fx=find_fa(e[i].a),fy=find_fa(e[i].b);
+                if(fx!=fy) fa[fy]=fx;
+            }
+        }
+        for(int i=1;i<=n;i++)
+        {
+            if(!e[i].c)
+            {
+                int fx=find_fa(e[i].a),fy=find_fa(e[i].b);
+                if(fx==fy)
+                {
+                    printf("NO\n");
+                    flag=1;
+                    break;
+                }
+            }
+        }
+        if(!flag) printf("YES\n");
+    }
+    return 0;
+}
+﻿
