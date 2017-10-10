@@ -1,0 +1,125 @@
+#include <cstdio>
+#define N 200005
+
+struct Segment
+{
+    int l,r,mid,sum,lm,rm,m,len,flag;
+    Segment * ch[2];
+    Segment ()
+    {
+        ch[0]=ch[1]=NULL;
+        lm=rm=m=0;
+        flag=-1;
+    }
+}*root=new Segment;
+int n,m,tmp,ans,nowl;
+inline int max(int a,int b) {return a>b?a:b;}
+inline void pushdown(Segment *&k)
+{
+    if(k->flag!=-1)
+    {
+        k->ch[0]->flag=k->ch[1]->flag=k->flag;
+        k->ch[0]->sum=k->ch[0]->len*k->flag;
+        k->ch[1]->sum=k->ch[1]->len*k->flag;
+        if(k->flag==0) k->ch[0]->lm=k->ch[0]->rm=k->ch[0]->m=k->ch[0]->len,k->ch[1]->lm=k->ch[1]->rm=k->ch[1]->m=k->ch[1]->len;
+        else k->ch[0]->lm=k->ch[0]->rm=k->ch[0]->m=k->ch[1]->lm=k->ch[1]->rm=k->ch[1]->m=0;
+        k->flag=-1;
+    }
+}
+inline void pushup(Segment *&k)
+{
+    k->sum=k->ch[0]->sum+k->ch[1]->sum;
+    if(!k->ch[0]->sum) k->lm=k->ch[0]->lm+k->ch[1]->lm;
+    else k->lm=k->ch[0]->lm;
+    if(!k->ch[1]->sum) k->rm=k->ch[0]->rm+k->ch[1]->rm;
+    else k->rm=k->ch[1]->rm;
+    k->m=max(max(k->ch[0]->m,k->ch[1]->m),k->ch[0]->rm+k->ch[1]->lm);
+}
+void build(Segment * &k,int l,int r)
+{
+    k=new Segment;
+    k->l=l;
+    k->r=r;
+    k->len=r-l+1;
+    if(l==r) {return;}
+    k->mid=(l+r)>>1;
+    build(k->ch[0],l,k->mid);
+    build(k->ch[1],k->mid+1,r);
+    pushup(k);
+}
+void change_to_nd(Segment *&k,int l,int r)
+{
+    if(l<=k->l&&k->r<=r)
+    {
+        k->sum=0;
+        k->flag=0;
+        k->lm=k->rm=k->len;
+        return;
+    }
+    pushdown(k);
+    if(l<=k->mid) change_to_nd(k->ch[0],l,r);
+    if(r>k->mid) change_to_nd(k->ch[1],l,r);
+    pushup(k);
+}
+void change_to_nzz(Segment *&k,int l,int r)
+{
+    if(!tmp)
+        return;
+    if(l<=k->l&&k->r<=r&&tmp>=k->len-k->sum)
+    {
+        tmp-=k->len-k->sum;
+        k->flag=1;
+        k->m=k->lm=k->rm=0;
+        k->sum=k->len;
+        return;
+    }
+    pushdown(k);
+    if(l<=k->mid) change_to_nzz(k->ch[0],l,r);
+    if(r>k->mid) change_to_nzz(k->ch[1],l,r);
+    pushup(k);
+}
+int ask(Segment *&k,int l,int r)
+{
+    if(k->l==l&&k->r==r) return k->sum;
+    pushdown(k);
+    if(l>k->mid) return ask(k->ch[1],l,r);
+    else if(r<=k->mid) return ask(k->ch[0],l,r);
+    else return ask(k->ch[0],l,k->mid)+ask(k->ch[1],k->mid+1,r);
+}
+void query(Segment *&k,int l,int r)
+{
+    if(l<=k->l&&k->r<=r)
+    {
+        ans=max(ans,k->m);
+        ans=max(ans,nowl+k->lm);
+        if(k->rm==k->len) nowl+=k->len;
+        else nowl=k->rm;
+        return;
+    }
+    pushdown(k);
+    if(l<=k->mid) query(k->ch[0],l,r);
+    if(r>k->mid) query(k->ch[1],l,r);
+}
+int Main()
+{
+    scanf("%d%d",&n,&m);
+    build(root,1,n);
+    root->sum=root->len;
+    root->flag=1;
+    for(int opt,l,r,L,R;m--;)
+    {
+        scanf("%d%d%d",&opt,&l,&r);
+        if(!opt) change_to_nd(root,l,r);
+        else if(opt==1)
+        {
+            scanf("%d%d",&L,&R);
+            tmp=ask(root,l,r);
+            change_to_nd(root,l,r);
+            change_to_nzz(root,L,R);
+        }
+        else nowl=0,ans=0,query(root,l,r),printf("%d\n",ans);
+    }
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]) {;}
