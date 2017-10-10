@@ -1,0 +1,90 @@
+#include <cstdio>
+#include <cctype>
+#define N 1000500
+#define rep(a,b,c) for(int x,y,a=b;a<=c;++a)
+#define Rep(a,b) for(int a=head[b];a;a=nextt[a])
+#define REP(a,b) for(int a=_head[b];a;a=_nextt[a])
+
+template<typename T>
+inline void read(T &x)
+{
+	register char ch=getchar();
+	for(x=0;!isdigit(ch);ch=getchar());
+	for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+}
+bool instack[N],vis[N];
+int n,m,Mod,cnt,top,tim,sumcol,sum[N],val[N],f[N],head[N],nextt[N],to[N],stack[N],low[N],dfn[N],col[N];
+int _head[N],_nextt[N],_to[N],_cnt;
+template<typename S> inline int min(S a,S b) {return a>b?b:a;}
+void tarjan(int x)
+{
+	low[x]=dfn[x]=++tim;
+	instack[x]=true;
+	stack[++top]=x;
+	Rep(i,x)
+	{
+		int v=to[i];
+		if(!dfn[v]) {tarjan(v);low[x]=min(low[x],low[v]);}
+		else if(instack[v]) low[x]=min(low[x],dfn[v]); 
+	}
+	if(low[x]==dfn[x])
+	{
+		sumcol++;
+		int k;
+		do
+		{
+			k=stack[top--];
+			instack[k]=false;
+			col[k]=sumcol;
+		}while(k!=x);
+	}
+}
+template<typename Y> inline int max(Y a,Y b) {return a>b?a:b;}
+void Dfs(int x)
+{
+	if(vis[x]) return;
+	vis[x]=1;
+	f[x]=val[x];
+	REP(i,x)
+	{
+		int v=_to[i];
+		Dfs(v);
+		f[x]=max(f[x],f[v]+val[x]);
+	}
+	REP(i,x)
+	{
+		int v=_to[i];
+		if(f[x]==f[v]+val[x]) sum[x]=(sum[x]+sum[v])%Mod;
+	}
+	if(!sum[x]) sum[x]=1;
+}
+int main(int argc,char *argv[])
+{
+	read(n);read(m);read(Mod);
+	rep(i,1,m)
+	{
+		read(x);read(y);
+		nextt[++cnt]=head[x];to[cnt]=y;head[x]=cnt;
+	}
+	rep(i,1,n) if(!dfn[i]) tarjan(i);
+	rep(i,1,n)
+	{
+		val[col[i]]++;
+		Rep(j,i)
+		{
+			int v=to[j];
+			if(col[i]!=col[v])
+			{
+				REP(k,col[i]) if(_to[k]==col[v]) goto flag;
+				_nextt[++_cnt]=_head[col[i]];_to[_cnt]=col[v];_head[col[i]]=_cnt;
+			}
+			flag:;
+		}
+	}
+	int ans=0,ret=0;
+	rep(i,1,sumcol) if(!vis[i]) Dfs(i);
+	rep(i,1,sumcol) ans=max(ans,f[i]);
+	rep(i,1,sumcol) if(f[i]==ans) ret=(ret+sum[i])%Mod;
+	printf("%d\n%d",ans,ret);
+	return 0;
+}
