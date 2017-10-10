@@ -1,0 +1,95 @@
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#include <cmath>
+#define N 100100
+#define inf 0x3f3f3f3f
+#define eps 1e-8
+using namespace std;
+bool vis[N];
+int nextt[N],to[N],fa[N],flow[N],head[N],cnt=1,n,ans1,ans2,a[101][101],b[101][101];
+double cost[N],dis[N];
+inline void ins(int u,int v,int f,double c)
+{
+    nextt[++cnt]=head[u];
+    to[cnt]=v;
+    flow[cnt]=f;
+    cost[cnt]=c;
+    head[u]=cnt;
+}
+bool spfa(int s,int t)
+{
+    for(int i=s;i<=t;++i) vis[i]=0,dis[i]=-1e9;
+    dis[s]=fa[s]=0;
+    queue<int>q;
+    q.push(s);
+    for(int now;!q.empty();)
+    {
+        now=q.front();q.pop();
+        vis[now]=0;
+        for(int i=head[now];i;i=nextt[i])
+        {
+            int v=to[i];
+            if(dis[v]<dis[now]+cost[i]&&flow[i]>0)
+            {
+                dis[v]=dis[now]+cost[i];
+                fa[v]=i;
+                if(!vis[v])
+                {
+                    vis[v]=1;
+                    q.push(v);
+                }
+            }
+        }
+    }
+    return dis[t]!=-1e9;
+}
+bool dinic(int s,int t,double k)
+{
+    cnt=1;
+    memset(head,0,sizeof(head));
+    for(int i=1;i<=n;++i) ins(s,i,1,0),ins(i,s,0,0);
+    for(int i=n+1;i<=n*2;++i) ins(i,t,1,0),ins(t,i,0,0);
+    for(int i=1;i<=n;++i)
+     for(int j=1;j<=n;++j)
+      ins(i,n+j,1,(double)a[i][j]-k*b[i][j]),ins(n+j,i,0,-((double)a[i][j]-k*b[i][j]));
+    double tmp=0;
+    bool flag=false;
+    for(;spfa(s,t);)
+    {
+        if(tmp+dis[t]>=0)
+        {
+            flag=true;
+            for(int i=t;i!=s&&i;i=to[fa[i]^1])
+            {
+                flow[fa[i]]-=1;
+                flow[fa[i]^1]+=1;
+            }
+            tmp+=dis[t];
+        }
+        else return false;
+    }
+    return flag;
+}
+int Main()
+{
+    scanf("%d",&n);
+    for(int i=1;i<=n;++i)
+     for(int j=1;j<=n;++j)
+      scanf("%d",&a[i][j]);
+    for(int i=1;i<=n;++i)
+     for(int j=1;j<=n;++j)
+      scanf("%d",&b[i][j]);
+    int s=0,t=n*2+1;
+    double l=0,r=10000000,mid,ans;
+    for(;abs(r-l)>eps;)
+    {
+        mid=(l+r)/2;
+        if(dinic(s,t,mid)) ans=mid,l=mid+eps;
+        else r=mid-eps;
+    }
+    printf("%.6lf",ans);
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]) {;}
