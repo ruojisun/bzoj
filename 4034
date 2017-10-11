@@ -1,0 +1,155 @@
+#include <iostream>
+#include <cctype>
+#include <cstdio>
+using std::cout;
+#define N 200050
+typedef long long LL;
+ 
+LL n,m,tim,cnt,cntt,d[N],siz[N],dep[N],fa[N],top[N],dfn[N],belong[N],end[N],head[N],to[N<<1],nextt[N<<1];
+inline void read(LL &x)
+{
+    bool f=0;
+    register char ch=getchar();
+    for(x=0;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+    x=f?(-x):x;
+}
+inline LL max(LL a,LL b) {return a>b?a:b;}
+inline LL min(LL a,LL b) {return a>b?b:a;}
+struct Segment
+{
+    LL l,r,val,flag;
+}tr[N<<2|1];
+void build(LL k,LL l,LL r)
+{
+    tr[k].l=l;tr[k].r=r;
+    if(l==r)
+    {
+        tr[k].val=dfn[l];
+        return;
+    }
+    LL mid=(l+r)>>1;
+    build(k<<1,l,mid);
+    build(k<<1|1,mid+1,r);
+    tr[k].val=tr[k<<1].val+tr[k<<1|1].val;
+}
+void modify(LL k,LL l,LL r,LL v)
+{
+    if(tr[k].l==l&&tr[k].r==r)
+    {
+        tr[k].flag+=v;
+        tr[k].val+=(r-l+1)*v;
+        return;
+    }
+    LL mid=(tr[k].l+tr[k].r)>>1;
+    if(tr[k].flag)
+    {
+        tr[k<<1].flag+=tr[k].flag;
+        tr[k<<1|1].flag+=tr[k].flag;
+        tr[k<<1].val+=(mid-tr[k<<1].l+1)*tr[k].flag;
+        tr[k<<1|1].val+=(tr[k<<1|1].r-mid)*tr[k].flag;
+        tr[k].flag=0;
+    }
+    if(l>mid) modify(k<<1|1,l,r,v);
+    else if(r<=mid) modify(k<<1,l,r,v);
+    else modify(k<<1,l,mid,v),modify(k<<1|1,mid+1,r,v);
+    tr[k].val=tr[k<<1].val+tr[k<<1|1].val;
+}
+LL query(LL k,LL l,LL r)
+{
+    if(tr[k].l==l&&tr[k].r==r) return tr[k].val;
+    LL mid=(tr[k].l+tr[k].r)>>1;
+    if(tr[k].flag)
+    {
+        tr[k<<1].flag+=tr[k].flag;
+        tr[k<<1|1].flag+=tr[k].flag;
+        tr[k<<1].val+=(mid-tr[k<<1].l+1)*tr[k].flag;
+        tr[k<<1|1].val+=(tr[k<<1|1].r-mid)*tr[k].flag;
+        tr[k].flag=0;
+    }
+    if(l>mid) return query(k<<1|1,l,r);
+    else if(r<=mid) return query(k<<1,l,r);
+    else return query(k<<1,l,mid)+query(k<<1|1,mid+1,r);
+    tr[k].val=tr[k<<1].val+tr[k<<1|1].val;
+}
+void swap(LL &m,LL &n)
+{
+    LL tmp=n;
+    n=m;
+    m=tmp;
+}
+inline void ins(LL u,LL v)
+{
+    nextt[++cnt]=head[u];
+    to[cnt]=v;
+    head[u]=cnt;
+}
+void dfs1(LL now,LL Fa)
+{
+    LL pos=cntt++;
+    fa[now]=Fa,dep[now]=dep[Fa]+1;
+    for(LL i=head[now];i;i=nextt[i])
+    {
+        if(to[i]==Fa) continue;
+        dfs1(to[i],now);
+    }
+    siz[now]=cntt-pos;
+}
+void dfs2(LL now,LL chain)
+{
+    belong[now]=++tim,top[now]=chain;
+    LL pos=0;dfn[tim]=d[now];
+    for(LL i=head[now];i;i=nextt[i])
+    {
+        if(to[i]==fa[now]) continue;
+        if(siz[to[i]]>siz[pos]) pos=to[i];
+    }
+    if(pos) dfs2(pos,chain);
+    for(LL i=head[now];i;i=nextt[i])
+    {
+        if(to[i]==fa[now]||to[i]==pos) continue;
+        dfs2(to[i],to[i]);
+    }
+    end[now]=tim;
+}
+LL solvesum(LL x,LL y)
+{
+    LL ret=0;
+    for(;top[x]!=top[y];x=fa[top[x]])
+    {
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+        ret+=query(1,belong[top[x]],belong[x]);
+    }
+    if(dep[x]<dep[y]) swap(x,y);
+    ret+=query(1,belong[y],belong[x]);
+    return ret;
+}
+int main(int argc,char *argv[])
+{
+    read(n);read(m);
+    for(LL i=1;i<=n;++i) read(d[i]);
+    for(LL x,y,i=1;i<n;++i)
+    {
+        read(x);read(y);
+        ins(x,y);
+        ins(y,x);
+    }
+    dfs1(1,0);dfs2(1,1);
+    build(1,1,n);
+    for(LL opt,a,b;m--;)
+    {
+        read(opt);read(a);
+        if(opt==1)
+        {
+            read(b);
+            modify(1,belong[a],belong[a],b);
+        }
+        else if(opt==2)
+        {
+            read(b);
+            modify(1,belong[a],end[a],b);
+        }
+        else cout<<solvesum(1,a),printf("\n");
+    }
+    return 0;
+}
