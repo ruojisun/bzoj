@@ -1,0 +1,180 @@
+#include <cstring>
+#include <cstdio>
+#define N 105000
+
+int n,q,tim,cnt,nextt[N<<1],to[N<<1],head[N],dep[N],belong[N],col[N],top[N],fa[N],siz[N];
+namespace segment
+{
+	struct Segment
+	{
+		int l,r,mid,col,v,lc,rc,m,flag;
+		Segment *ch[2];
+		Segment(){ch[0]=ch[1]=NULL;}
+	}*root=new Segment;
+	void pushup(Segment *&k)
+	{
+		k->lc=k->ch[0]->lc;
+		k->rc=k->ch[1]->rc;
+		if(k->ch[0]->rc^k->ch[1]->lc) k->m=k->ch[0]->m+k->ch[1]->m;
+		else k->m=k->ch[0]->m+k->ch[1]->m-1;
+	}
+	void build(Segment *&k,int l,int r)
+	{
+		k=new Segment;
+		k->l=l;k->r=r;k->m=1;k->flag=-1;
+		if(l==r) return;
+		k->mid=(l+r)>>1;
+		build(k->ch[0],l,k->mid);
+		build(k->ch[1],k->mid+1,r);
+	}
+	void pushdown(Segment *&k)
+	{
+		k->ch[0]->flag=k->flag;
+		k->ch[1]->flag=k->flag;
+		k->ch[0]->lc=k->ch[0]->rc=k->flag;
+		k->ch[1]->lc=k->ch[1]->rc=k->flag;
+		k->ch[0]->m=k->ch[1]->m=1;
+		k->flag=-1;
+	}
+	void change(Segment *&k,int l,int r,int v)
+	{
+		if(k->l==l&&k->r==r)
+		{
+			k->flag=v;
+			k->lc=k->rc=v;
+			k->m=1;
+			return;
+		}
+		if(k->flag!=-1) pushdown(k);
+		if(l>k->mid) change(k->ch[1],l,r,v);
+		else if(r<=k->mid) change(k->ch[0],l,r,v);
+		else change(k->ch[0],l,k->mid,v),change(k->ch[1],k->mid+1,r,v);
+		pushup(k);
+	}
+	int query(Segment *&k,int l,int r)
+	{
+		if(k->l==l&&k->r==r) return k->m;
+		if(k->flag!=-1) pushdown(k);
+		if(l>k->mid) return query(k->ch[1],l,r);
+		else if(r<=k->mid) return query(k->ch[0],l,r);
+		else
+		{
+			int tmp=1;
+			if(k->ch[0]->rc^k->ch[1]->lc) tmp=0;
+			return query(k->ch[0],l,k->mid)+query(k->ch[1],k->mid+1,r)-tmp;
+		}
+		pushup(k);
+	}
+	int ask(Segment *&k,int t)
+	{
+		if(k->l==k->r) return k->lc;
+		if(k->flag!=-1) pushdown(k);
+		if(t<=k->mid) return ask(k->ch[0],t);
+		else return ask(k->ch[1],t);
+		pushup(k);
+	}
+}
+void swap(int &m,int &n)
+{
+	int tmp=n;
+	n=m;
+	m=tmp;
+}
+using namespace segment;
+namespace chain
+{
+	void solvechange(int x,int y,int v)
+	{
+		for(;top[x]!=top[y];x=fa[top[x]])
+		{
+			if(dep[top[x]]<dep[top[y]]) swap(x,y);
+			change(root,belong[top[x]],belong[x],v);
+		}
+		if(dep[x]<dep[y]) swap(x,y);
+		change(root,belong[y],belong[x],v);
+	}
+	int solvesum(int x,int y)
+	{
+		int sum=0;
+		for(;top[x]!=top[y];x=fa[top[x]])
+		{
+			if(dep[top[x]]<dep[top[y]]) swap(x,y);
+			sum+=query(root,belong[top[x]],belong[x]);
+			if(ask(root,belong[top[x]])==ask(root,belong[fa[top[x]]])) sum--;
+		}
+		if(dep[x]<dep[y]) swap(x,y);
+		sum+=query(root,belong[y],belong[x]);
+		return sum;
+	}
+}
+using namespace std;
+using namespace chain;
+void dfs1(int x)
+{
+	dep[x]=dep[fa[x]]+1;
+	siz[x]=1;
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(fa[x]==v) continue;
+		fa[v]=x;
+		dfs1(v);
+		siz[x]+=siz[v];
+	}
+}
+void dfs2(int x)
+{
+	belong[x]=++tim;
+	int p=0;
+	if(!top[x]) top[x]=x;
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(fa[x]!=v&&siz[p]<siz[v]) p=v;
+	}
+	if(p) top[p]=top[x],dfs2(p);
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(fa[x]!=v&&v!=p) dfs2(v);
+	}
+}
+int lca(int x,int y)
+{
+	for(;top[x]!=top[y];x=fa[top[x]])
+	 if(dep[top[x]]<dep[top[y]]) swap(x,y);
+	return dep[x]<dep[y]?x:y;
+}
+int main()
+{
+	scanf("%d%d",&n,&q);
+	for(int i=1;i<=n;++i) scanf("%d",&col[i]);
+	for(int x,y,i=1;i<n;++i)
+	{
+		scanf("%d%d",&x,&y);
+		nextt[++cnt]=head[x];to[cnt]=y;head[x]=cnt;
+		nextt[++cnt]=head[y];to[cnt]=x;head[y]=cnt;
+	}
+	dfs1(1);
+	dfs2(1);
+	build(root,1,n);
+	for(int i=1;i<=n;++i)
+	 change(root,belong[i],belong[i],col[i]);
+	char opt[5];
+	for(int a,b,c;q--;)
+	{
+		scanf("%s%d%d",opt,&a,&b);
+		if(opt[0]=='C')
+		{
+			scanf("%d",&c);
+			int t=lca(a,b);
+			solvechange(a,t,c),solvechange(b,t,c);
+		}
+		else 
+		{
+			int t=lca(a,b);
+			printf("%d\n",solvesum(a,t)+solvesum(b,t)-1);
+		}
+	}
+	return 0;
+}
