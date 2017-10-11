@@ -1,0 +1,85 @@
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#define N 300000+15
+using namespace std;
+int n,x,y,cnt,ans[N],a[N],siz[N],fa[N],dep[N],top[N],head[N],nextt[N<<1],to[N<<1];
+inline void read(int &x)
+{
+    bool f=0;register char ch=getchar();
+    for(x=0;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+    x=f?(-x):x;
+}
+void dfs1(int x)
+{
+    dep[x]=dep[fa[x]]+1;
+    siz[x]=1;
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(fa[x]==v) continue;
+        fa[v]=x;
+        dfs1(v);
+        siz[x]+=siz[v];
+    }
+}
+inline void dfs2(int x)
+{
+    int p=0;
+    if(!top[x]) top[x]=x;
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(fa[x]!=v&&siz[p]<siz[v]) p=v;
+    }
+    if(p) top[p]=top[x],dfs2(p);  
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(fa[x]!=v&&v!=p) dfs2(v);
+    }
+}
+void swap(int &m,int &n)
+{
+    int tmp=n;
+    n=m;
+    m=tmp;
+}
+inline int LCA(int x,int y)
+{
+    for(;top[x]!=top[y];x=fa[top[x]])
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+    return dep[x]<dep[y]?x:y;
+}
+inline void dfs3(int x)
+{
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(fa[x]==v) continue;
+        dfs3(v);
+        ans[x]+=ans[v];
+    }
+}
+int main()
+{
+    read(n);
+    for(int i=1;i<=n;++i) read(a[i]);
+    for(int i=1;i<n;++i)
+    {
+        read(x);read(y);
+        nextt[++cnt]=head[x];to[cnt]=y;head[x]=cnt;
+        nextt[++cnt]=head[y];to[cnt]=x;head[y]=cnt;
+    }
+    dfs1(1);dfs2(1);
+    for(int i=2;i<=n;++i)
+    {
+        int x=a[i-1],y=a[i],z=LCA(x,y);
+        ans[x]++;ans[fa[y]]++;
+        ans[z]--;ans[fa[z]]--;
+    }
+    dfs3(1);
+    for(int i=1;i<=n;++i) printf("%d\n",ans[i]);
+    return 0;
+}
