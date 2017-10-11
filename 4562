@@ -1,0 +1,40 @@
+#include <cstdio>
+#define Max 200000
+struct node
+{
+    int next,to;
+}edge[Max<<1];
+int f[Max],cd[Max],rd[Max],ans,head[Max<<1],cnt,n,m;
+void add(int u,int v)
+{
+    cnt++;
+    edge[cnt].next=head[u];
+    edge[cnt].to=v;
+    head[u]=cnt;
+}
+int dfs(int x)
+{
+    if(f[x]) return f[x];
+    if(cd[x]==0) return 1;
+    int k=0;
+    for(int i=head[x];i;i=edge[i].next) k+=dfs(edge[i].to);
+    f[x]=k;
+    return k;
+}
+int main()
+{
+    scanf("%d%d",&n,&m);
+    for(int x,y;m--;)
+    {
+        scanf("%d%d",&x,&y);
+        cd[x]++;rd[y]++;
+        add(x,y);
+    }
+    for(int i=1;i<=n;++i)
+    {
+        if(rd[i]==0&&cd[i]!=0)
+        ans+=dfs(i);
+    }
+    printf("%d",ans);
+    return 0;
+}
