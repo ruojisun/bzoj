@@ -15,7 +15,7 @@ namespace segment
 	{
 		k->lc=k->ch[0]->lc;
 		k->rc=k->ch[1]->rc;
-		if(k->ch[0]->rc^k->ch[1]->lc) k->m=k->ch[0]->m+k->ch[1]->m;
+		if(k->ch[0]->rc!=k->ch[1]->lc) k->m=k->ch[0]->m+k->ch[1]->m;
 		else k->m=k->ch[0]->m+k->ch[1]->m-1;
 	}
 	void build(Segment *&k,int l,int r)
@@ -60,7 +60,7 @@ namespace segment
 		else
 		{
 			int tmp=1;
-			if(k->ch[0]->rc^k->ch[1]->lc) tmp=0;
+			if(k->ch[0]->rc!=k->ch[1]->lc) tmp=0;
 			return query(k->ch[0],l,k->mid)+query(k->ch[1],k->mid+1,r)-tmp;
 		}
 		pushup(k);
