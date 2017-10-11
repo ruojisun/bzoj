@@ -1,0 +1,145 @@
+#include <cstring>
+#include <ctype.h>
+#include <cstdio>
+#include <queue>
+#define M 50005
+#define inf 0x7fffffff
+
+using namespace std;
+void read(int &x)
+{
+    x=0;bool f=0;
+    register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(;isdigit(ch);ch=getchar()) x=x*10+ch-'0';
+    x=f?(~x)+1:x;
+}
+struct Edge
+{
+    int next,to,flow,value;
+    Edge(int next=0,int to=0,int flow=0,int value=0) :next(next),to(to),flow(flow),value(value) {}
+}edge[M<<1];
+bool vis[M<<1];
+int u[M],v[M],c[M],w[M],n,m,k,dep[M<<1],dis[M<<1],fa[M<<1],flow[M<<1],head[M<<1],cnt=1;
+void insert(int u,int v,int w,int l)
+{
+    edge[++cnt]=Edge(head[u],v,w,l);
+    head[u]=cnt;
+}
+bool bfs(int s,int t)
+{
+    memset(dep,-1,sizeof(dep));
+    dep[s]=0;
+    queue<int>Q;
+    Q.push(s);
+    while(!Q.empty())
+    {
+        int now=Q.front();
+        Q.pop();
+        for(int i=head[now];i;i=edge[i].next)
+        {
+            int v=edge[i].to;
+            if(dep[v]==-1&&edge[i].flow>0)
+            {
+                dep[v]=dep[now]+1;
+                if(v==t) return true;
+                Q.push(v); 
+            }
+        }
+    }
+    return false;
+}
+int min(int a,int b) {return a>b?b:a;} 
+int dfs(int now,int t,int came_flow)
+{
+    if(now==t||came_flow==0) return came_flow;
+    int f,res=0;
+    for(int i=head[now];i;i=edge[i].next)
+    {
+        int v=edge[i].to;
+        if(dep[v]==dep[now]+1&&edge[i].flow>0&&(f=dfs(v,t,min(came_flow,edge[i].flow))))
+        {
+            res+=f;
+            came_flow-=f;
+            edge[i].flow-=f;
+            edge[i^1].flow+=f;
+            if(came_flow==0) break;
+        }
+    }
+    if(res!=came_flow) dep[now]=-1;
+    return res;
+}
+bool spfa(int s,int t)
+{
+    for(int i=s;i<=t;i++) {flow[i]=inf;dis[i]=inf;vis[i]=0;}
+    vis[s]=1;
+    fa[s]=0;
+    dis[s]=0;
+    queue<int>Q;
+    Q.push(s);
+    while(!Q.empty())
+    {
+        int now=Q.front();
+        Q.pop();
+        vis[now]=0;
+        for(int i=head[now];i;i=edge[i].next)
+        {
+            int v=edge[i].to;
+            if(dis[v]>dis[now]+edge[i].value&&edge[i].flow>0)
+            {
+                dis[v]=dis[now]+edge[i].value;
+                flow[v]=min(flow[now],edge[i].flow);
+                fa[v]=i;
+                if(!vis[v])
+                {
+                    vis[v]=1;
+                    Q.push(v);
+                }
+            }
+        }
+    }
+    return dis[t]<inf;
+}
+int update(int s,int t)
+{
+    int x=flow[t];
+    for(int i=t;i!=s&&i;i=edge[fa[i]^1].to)
+    {
+        edge[fa[i]].flow-=x;
+        edge[fa[i]^1].flow+=x;
+    }
+    return dis[t]*x;
+}
+int dinic(int s,int t,int type)
+{
+    int ans=0;
+    if(type==1)
+        for(;bfs(s,t);ans+=dfs(s,t,inf));
+    else for(;spfa(s,t);ans+=update(s,t));
+    return ans;
+}
+int main()
+{
+    read(n);
+    read(m);
+    read(k);
+    for(int i=1;i<=m;i++)
+    {
+        read(u[i]);
+        read(v[i]);
+        read(c[i]);
+        read(w[i]);
+        insert(u[i],v[i],c[i],0);
+        insert(v[i],u[i],0,0);
+    }
+    printf("%d ",dinic(1,n,1));
+    for(int i=1;i<=m;i++)
+    {
+        insert(u[i],v[i],inf,w[i]);
+        insert(v[i],u[i],0,-w[i]);
+    }
+    insert(0,1,k,0);
+    insert(1,0,0,0);
+    printf("%d\n",dinic(0,n,2));
+    return 0;
+}
