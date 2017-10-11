@@ -1,0 +1,35 @@
+#include <cstdio>
+#include <cmath>
+typedef long long LL;
+LL n,ans;
+LL phi(LL k)
+{
+    LL ret=k;
+    if(k%2==0)
+    {
+        while(k%2==0) k/=2;
+        ret/=2;
+    }
+    for(LL i=3;i*i<=k;i+=2)
+    {
+        if(k%i==0)
+        {
+            while(k%i==0) k/=i;
+            ret=ret/i*(i-1);
+        }
+    }
+    if(k>1) ret=ret/k*(k-1);
+    return ret;
+}
+int main(int argc,char *argv[])
+{
+    scanf("%lld",&n);
+    for(LL i=1;i<=sqrt(n);++i)
+    {
+        if(n%i) continue;
+        ans+=(LL)i*phi(n/i);
+        if(i*i!=n) ans+=(LL)(n/i)*phi(i);
+    }
+    printf("%lld",ans);
+    return 0;
+}
