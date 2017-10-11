@@ -1,0 +1,20 @@
+#include <iostream>
+#include <cstdio>
+int n,x,y;
+using namespace std;
+double Dfs(int num,double x,double y)
+{
+	if(x<y) swap(x,y);
+	double ans=1e18;
+	if(num==1) return x/y;
+	for(int i=1;i<num;++i)
+	 ans=min(ans,max(Dfs(i,x/num*i,y),Dfs(num-i,x/num*(num-i),y))),
+	 ans=min(ans,max(Dfs(i,y/num*i,x),Dfs(num-i,y/num*(num-i),x)));
+	return ans;
+}
+int main(int argc,char *argv[])
+{
+	scanf("%d%d%d",&x,&y,&n);
+	printf("%.6lf\n",Dfs(n,(double)x,(double)y));
+	return 0;
+}
