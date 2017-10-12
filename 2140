@@ -1,0 +1,65 @@
+#include <cstdio>
+#include <string>
+#include <map>
+#define N 20500
+std::map<std::string,int>q;
+int n,m,cnt,tim,top,sumcol,low[N],dfn[N],stack[N],col[N],to[N<<1],num[N],nextt[N<<1],head[N];
+inline void edge_ins(int u,int v)
+{
+	nextt[++cnt]=head[u];
+	to[cnt]=v;
+	head[u]=cnt;
+}
+inline int min(int a,int b) {return a>b?b:a;}
+void tarjan(int x,int pre)
+{
+	low[x]=dfn[x]=++tim;
+	stack[++top]=x;
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(v==pre) continue;
+		if(!dfn[v])
+		{
+			tarjan(v,x);
+			low[x]=min(low[x],low[v]);
+		}
+		else if(!col[v]) low[x]=min(low[x],dfn[v]);
+	}
+	if(low[x]==dfn[x])
+	{
+		sumcol++;
+		int k;
+		do
+		{
+			k=stack[top--];
+			col[k]=sumcol;
+		}while(k!=x);
+	}
+}
+int main(int argc,char *argv[])
+{
+	scanf("%d",&n);
+	char g[15],b[15];
+	for(int i=1;i<=n;++i)
+	{
+		scanf("%s",g);
+		scanf("%s",b);
+		q[g]=i,q[b]=i+n;
+		edge_ins(i+n,i);
+	}
+	scanf("%d",&m);
+	for(;m--;)
+	{
+		scanf("%s",g);
+		scanf("%s",b);
+		edge_ins(q[g],q[b]);
+	}
+	for(int i=1;i<=n;++i) if(!dfn[i]) tarjan(i,0);
+	for(int i=1;i<=n;++i)
+	{
+		if(col[i]==col[i+n]) puts("Unsafe");
+		else puts("Safe");
+	}
+	return 0;
+}
