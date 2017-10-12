@@ -1,2 +1,1 @@
-# bzoj
-code in bzoj
+code of bzoj
