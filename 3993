@@ -1,0 +1,90 @@
+#include <cstring>
+#include <cstdio>
+#include <cmath>
+#include <queue>
+#define N 105
+#define inf 999999.9
+#define eps 1e-6
+#define cl(a,b) memset(a,b,sizeof(a))
+double ans,flow[N<<10];
+int n,m,tota,totb,cnt=1,A[N],B[N],G[N][N],dep[N],head[N<<6],to[N<<10],nextt[N<<10];;
+inline void ins(int u,int v,double f)
+{
+	nextt[++cnt]=head[u];to[cnt]=v;flow[cnt]=f;head[u]=cnt;
+	nextt[++cnt]=head[v];to[cnt]=u;flow[cnt]=0;head[v]=cnt;
+}
+bool bfs(int S,int T)
+{
+	cl(dep,-1);
+	dep[S]=0;
+	std::queue<int>q;
+	q.push(S);
+	for(int now;!q.empty();)
+	{
+		now=q.front();q.pop();
+		for(int i=head[now];i;i=nextt[i])
+		{
+			int v=to[i];
+			if(dep[v]==-1&&flow[i]>0)
+			{
+				dep[v]=dep[now]+1;
+				if(v==T) return true;
+				q.push(v); 
+			}
+		}
+	}
+	return false;
+}
+inline double min(double a,double b) {return a>b?b:a;}
+double dfs(int now,int T,double limit)
+{
+	if(now==T||!limit) return limit;
+	double f,res=0;
+	for(int i=head[now];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(dep[v]==dep[now]+1&&flow[i]>0&&(f=dfs(v,T,min(limit,flow[i]))))
+		{
+			flow[i]-=f;
+			flow[i^1]+=f;
+			limit-=f;
+			res+=f;
+			if(!limit) break;
+		}
+	}
+	if(res!=limit) dep[now]=-1;
+	return res;
+}
+bool check(double p)
+{
+	cnt=1;
+	cl(head,0);
+	int S=0,T=m+n+1;
+	for(int i=1;i<=m;++i) ins(S,i,p*B[i]);
+	for(int i=1;i<=n;++i) ins(i+m,T,A[i]);
+	for(int i=1;i<=m;++i)
+	 for(int j=1;j<=n;++j)
+	  if(G[i][j]) ins(i,j+m,inf);
+	double ret=0;
+	for(;bfs(S,T);ret+=dfs(S,T,inf));
+	if(ret>=(double)tota-eps) return true;
+	else return false;
+}
+int main(int argc,char *argv[])
+{
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;++i) scanf("%d",&A[i]),tota+=A[i];
+	for(int i=1;i<=m;++i) scanf("%d",&B[i]),totb+=B[i];
+	for(int i=1;i<=m;++i)
+	 for(int j=1;j<=n;++j)
+	  scanf("%d",&G[i][j]);
+	double l=tota*1.0/totb,r=1e5,ans;
+	for(double mid;r>l;)
+	{
+		mid=(l+r)/2.0;
+		if(check(mid)) ans=mid,r=mid-eps;
+		else l=mid+eps;
+	}
+	printf("%lf",ans);
+	return 0;
+}
