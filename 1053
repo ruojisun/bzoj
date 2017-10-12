@@ -1,0 +1,35 @@
+#include <cstdio>
+#include <cctype>
+typedef long long LL;
+
+LL n,ans=1,cnt=1;
+int p[15]={0,2,3,5,7,11,13,17,19,23,29,31,37};
+void dfs(int k,LL now,int num,int cf)
+{
+	if(k==12)
+	{
+		if(now>ans&&num>cnt) {ans=now;cnt=num;}
+		if(now<=ans&&num>=cnt) {ans=now;cnt=num;}
+		return;
+	}
+	LL t=1;
+	for(int i=0;i<=cf;++i)
+	{
+		dfs(k+1,now*t,num*(i+1),i);
+		t*=p[k];
+		if(now*t>n) break;
+	}
+}
+inline void read(LL &x)
+{
+	register char ch=getchar();
+	for(x=0;!isdigit(ch);ch=getchar());
+	for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+}
+int main(int argc,char *argv[])
+{
+	read(n);
+	dfs(1,1,1,20);
+	printf("%lld",ans);
+	return 0;
+}
