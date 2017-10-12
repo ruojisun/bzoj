@@ -1,0 +1,90 @@
+#include <cstring>
+#include <cstdlib>
+#include <cstdio>
+#include <queue>
+#include <cmath>
+#define N 10005
+#define cl(a,b) memset(a,b,sizeof(a))
+using namespace std;
+bool vis[N];
+int a,b,cnt=1,ans,num,to[N],pre[N],dep[N],came[N],dis[N],head[N],nextt[N],flow[N],val[N];
+int gcd(int m,int n) {return !n?m:gcd(n,m%n);}
+bool check(int a,int b)
+{
+	int c=abs(a*a-b*b);
+	int v=sqrt(c);
+	int mix=a>b?b:a;
+	if(v*v==c&&gcd(v,mix)==1) return true;
+	return false;
+}
+void ins(int u,int v,int f,int w)
+{
+	nextt[++cnt]=head[u];to[cnt]=v;flow[cnt]=f;val[cnt]=w;head[u]=cnt;
+	nextt[++cnt]=head[v];to[cnt]=u;flow[cnt]=0;val[cnt]=-w;head[v]=cnt;
+}
+inline int min(int a,int b) {return a>b?b:a;}
+bool spfa(int S,int T)
+{
+	cl(dis,-100);
+	cl(came,0x7f);
+	cl(vis,0);
+	dis[S]=0;
+	queue<int>q;
+	q.push(S);
+	for(int u;!q.empty();)
+	{
+		int u=q.front();
+		q.pop();
+		vis[u]=false;
+		for(int i=head[u];i;i=nextt[i])
+		{
+			int v=to[i];
+			if(dis[v]<dis[u]+val[i]&&flow[i]>0)
+			{
+				dis[v]=dis[u]+val[i];
+				came[v]=min(flow[i],came[u]);
+				pre[v]=i;
+				if(!vis[v])
+				{
+					vis[v]=true;
+					q.push(v); 
+				}
+			}
+		}
+	}
+	return dis[T]>0;
+}
+void dinic(int S,int T)
+{
+	for(;spfa(S,T);)
+	{
+		int t=came[T];
+		for(int i=T;i!=S&&i;i=to[pre[i]^1])
+		{
+			flow[pre[i]]-=t;
+			flow[pre[i]^1]+=t;
+		}
+		ans+=dis[T]*t;
+		num+=t;
+	}
+}
+int main()
+{
+	scanf("%d%d",&a,&b);
+	int S=0,T=7777;
+	for(int i=a;i<=b-1;++i)
+	{
+		for(int j=i+1;j<=b;++j)
+		{
+			if(check(j,i))
+			{
+				ins(i,j+1000,1,i+j);
+				ins(j,i+1000,1,i+j);
+			}
+		}
+	}
+	for(int i=a;i<=b-1;++i) ins(S,i,1,0),ins(i+1000,T,1,0);
+	dinic(S,T);
+	printf("%d %d\n",num/2,ans/2);
+	return 0;
+}
