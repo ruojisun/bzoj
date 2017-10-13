@@ -1,0 +1,90 @@
+#include <algorithm>
+#include <cstdio>
+#define N 45000
+using namespace std;
+int n,m,k,cnt,tot,to[N<<1],fa[N],top[N],dis[N],dad[N],dep[N],head[N],nextt[N<<1],val[N<<1];
+void ins(int u,int v,int w)
+{
+	nextt[++cnt]=head[u];to[cnt]=v;val[cnt]=w;head[u]=cnt;
+	nextt[++cnt]=head[v];to[cnt]=u;val[cnt]=w;head[v]=cnt;
+}
+void dfs1(int x,int pre)
+{
+	dep[x]=dep[pre]+1;
+	dad[x]=pre;
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(v==pre) continue;
+		dis[v]=val[i];
+		dfs1(v,x);
+	}
+}
+inline void swap(int &m,int &n)
+{
+	int tmp=m;
+	m=n;
+	n=tmp;
+}
+struct node
+{
+	int x,y,z;
+	bool operator<(node a)const
+	{
+		return z<a.z;
+	}
+}e[N];
+inline int max(int a,int b) {return a>b?a:b;}
+int query(int x,int y)
+{
+	int ret1=0,ret2=0;
+	if(dep[x]<dep[y]) swap(x,y);
+	while(dep[x]>dep[y])
+	{
+		ret1=max(ret1,dis[x]);
+		x=dad[x];
+	}
+	while(x!=y)
+	{
+		ret1=max(ret1,dis[x]);
+		x=dad[x];
+		ret2=max(ret2,dis[y]);
+		y=dad[y];
+	}
+	return max(ret1,ret2);
+}
+int find_(int x) {return x==fa[x]?x:fa[x]=find_(fa[x]);}
+void kruskal()
+{
+	for(int i=1;i<=n;++i) fa[i]=i;
+	int num=0;
+	for(int i=1;i<=tot;++i)
+	{
+		int fx=find_(e[i].x),fy=find_(e[i].y);
+		if(fx!=fy)
+		{
+			fa[fy]=fx;
+			num++;
+			ins(e[i].x,e[i].y,e[i].z);
+			if(num==n-1) break;
+		}
+	}
+}
+int main()
+{
+	scanf("%d%d%d",&n,&m,&k);
+	for(int x,y,d;m--;)
+	{
+		scanf("%d%d%d",&x,&y,&d);
+		e[++tot]=(node){x,y,d}; 
+	}
+	sort(e+1,e+1+tot);
+	kruskal();
+	dfs1(1,0);
+	for(int u,v;k--;)
+	{
+		scanf("%d%d",&u,&v);
+		printf("%d\n",query(u,v));
+	}
+	return 0;
+}
