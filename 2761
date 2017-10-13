@@ -1,0 +1,40 @@
+#include <algorithm>
+#include <cstring>
+#include <cstdio>
+#include <cctype>
+#define N 50050
+#define cl(a,b) memset(a,b,sizeof(a))
+using namespace std;
+inline void read(int &x)
+{
+	bool f=0;register char ch=getchar();
+	for(x=0;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+	for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+	x=f?(-x):x;
+}
+bool vis[N];
+int n,T,num,a[N],b[N],ans[N];
+int main()
+{
+	read(T);
+	for(;T--;)
+	{
+		cl(vis,0);
+		num=0;
+		read(n);
+		for(int i=1;i<=n;++i) read(a[i]),b[i]=a[i];
+		sort(b+1,b+1+n);
+		int Size=unique(b+1,b+1+n)-b-1;
+		for(int i=1;i<=n;++i)
+		{
+			int rk=lower_bound(b+1,b+1+Size,a[i])-b;
+			if(!vis[rk])
+			{
+				vis[rk]=1;
+				ans[++num]=a[i];
+			}
+		}
+		for(int i=1;i<=num;++i) i==num?printf("%d\n",ans[i]):printf("%d ",ans[i]);
+	}
+	return 0;
+}
