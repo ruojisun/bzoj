@@ -1,0 +1,45 @@
+#include <cstdio>
+#define N 100005
+
+typedef long long LL;
+LL n,m,a[N],cp[N],cpp[N];
+inline LL lowbit(LL x) {return x&(-x);}
+inline void modify(LL x,LL v)
+{
+	LL tmp=(n-x+1)*v;
+	for(LL i=x;i<=n;i+=lowbit(i)) cp[i]+=v,cpp[i]+=tmp;
+}
+inline LL ask(LL x)
+{
+	LL sum=0,ot=0;
+	for(LL i=x;i;i-=lowbit(i)) sum+=cpp[i],ot+=cp[i];
+	sum-=ot*(n-x);
+	return sum;
+}
+int main()
+{
+	LL x,y;
+	scanf("%lld%lld",&n,&m);
+	for(LL i=1;i<=n;++i) 
+	{
+		scanf("%lld",&a[i]);
+		modify(i,a[i]);
+	} 
+	char opt[10];
+	while(m--)
+	{
+		scanf("%s",opt);
+		if(opt[0]=='Q')
+		{
+			scanf("%lld",&x);
+			printf("%lld\n",ask(x));
+		}
+		else
+		{
+			scanf("%lld%lld",&x,&y);
+			modify(x,y-a[x]);
+			a[x]=y;
+		}
+	}
+	return 0;
+}
