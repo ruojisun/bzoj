@@ -1,0 +1,105 @@
+#include <algorithm>
+#include <iostream>
+#include <cstring>
+#include <cctype>
+#include <cstdio>
+#include <queue>
+#define N 40005
+#define cl(a,n,b) for(LL i=0;i<=n;++i) a[i]=b;
+#define inf 0x3f3f3f3f
+typedef long long LL;
+using namespace std;
+bool vis[N];
+int cnt=1,n,num,a[N],b[N],c[N],came[N],pre[N],to[N],head[N],nextt[N],flow[N];
+LL val[N],dis[N],ans1,ans2;
+inline void read(int &x)
+{
+    bool f=0;
+    register char ch=getchar();
+    for(x=0;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+    x=f?(-x):x;
+}
+inline int min(int a,int b) {return a>b?b:a;}
+void ins(int u,int v,int w,LL f)
+{
+    nextt[++cnt]=head[u];to[cnt]=v;flow[cnt]=w;val[cnt]= f;head[u]=cnt;
+    nextt[++cnt]=head[v];to[cnt]=u;flow[cnt]=0;val[cnt]=-f;head[v]=cnt;
+}
+bool spfa(int S,int T)
+{
+    cl(came,T,inf);
+    cl(vis,T,0);
+    cl(pre,T,-1);
+    cl(dis,T,-1e18);
+    dis[S]=0;
+    queue<int>q;
+    q.push(S);
+    for(int u;!q.empty();)
+    {
+        u=q.front();q.pop();
+        vis[u]=false;
+        for(int i=head[u];i;i=nextt[i])
+        {
+            int v=to[i];
+            if(dis[v]<dis[u]+val[i]&&flow[i]>0)
+            {
+                dis[v]=dis[u]+val[i];
+                came[v]=min(came[u],flow[i]);
+                pre[v]=i;
+                if(!vis[v])
+                {
+                    q.push(v);
+                    vis[v]=true; 
+                }
+            }
+        }
+    }
+    return pre[T]!=-1;
+}
+void Dinic(int S,int T)
+{
+    for(;spfa(S,T);)
+    {
+        int f=came[T];
+        for(int i=T;i!=S&&i!=-1;i=to[pre[i]^1])
+        {
+            flow[pre[i]]-=f;
+            flow[pre[i]^1]+=f;
+        }
+        LL tmp=ans2;
+        ans2+=1ll*f*dis[T];
+        if(ans2<0)
+        {
+            ans1+=tmp/(-dis[T]);
+            cout<<ans1/2;
+            return;
+        } 
+        ans1+=f;
+    }
+    cout<<ans1/2;
+    return;
+}
+bool judge(int a)
+{
+    if(a==0||a==1) return 0;
+    for(int i=2;i*i<=a;++i)
+    if(a%i==0) return false;
+    return true;
+}
+int main(int argc,char *argv[])
+{
+    read(n);
+    for(int i=1;i<=n;++i) read(a[i]);
+    for(int i=1;i<=n;++i) read(b[i]);
+    for(int i=1;i<=n;++i) read(c[i]);
+    for(int i=1;i<=n;++i)
+     for(int j=1;j<=n;++j)
+      if(a[i]%a[j]==0&&judge(a[i]/a[j]))
+       ins(j,i+n,inf,1ll*c[i]*c[j]),ins(i,j+n,inf,1ll*c[i]*c[j]);
+    int S=0,T=n*2+1;
+    for(int i=1;i<=n;++i) ins(S,i,b[i],0);
+    for(int i=n+1;i<=n<<1;++i) ins(i,T,b[i-n],0);
+    Dinic(S,T);
+    return 0;
+}
