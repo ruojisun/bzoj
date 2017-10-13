@@ -1,0 +1,105 @@
+#include <cctype>
+#include <cstdio>
+#define N 250000
+typedef long long LL;
+struct node
+{
+	LL l,r,mid,fplus,fmul,val;
+	bool mul;
+}tr[N<<2|1];
+LL n,p,m;
+inline void read(LL &x)
+{
+	register char ch=getchar();
+	for(x=0;!isdigit(ch);ch=getchar());
+	for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+}
+void build(int k,int l,int r)
+{
+	tr[k].l=l;tr[k].r=r;
+	tr[k].fmul=1;
+	if(l==r)
+	{
+		read(tr[k].val);
+		tr[k].val%=p;
+		return;
+	}
+	tr[k].mid=(l+r)>>1;
+	build(k<<1,l,tr[k].mid);
+	build(k<<1|1,tr[k].mid+1,r);
+	tr[k].val=(tr[k<<1].val+tr[k<<1|1].val)%p;
+}
+void pushdown(LL k)
+{
+	if(tr[k].mul)
+	{
+		tr[k<<1].val=(tr[k<<1].val*tr[k].fmul)%p;
+		tr[k<<1|1].val=(tr[k<<1|1].val*tr[k].fmul)%p;
+		tr[k<<1].fplus=(tr[k<<1].fplus*tr[k].fmul)%p;
+		tr[k<<1|1].fplus=(tr[k<<1|1].fplus*tr[k].fmul)%p;
+		tr[k<<1].fmul=(tr[k<<1].fmul*tr[k].fmul)%p;
+		tr[k<<1|1].fmul=(tr[k<<1|1].fmul*tr[k].fmul)%p;
+		tr[k<<1].mul=tr[k<<1|1].mul=1;
+		tr[k].mul=false;tr[k].fmul=1;
+	}
+	if(tr[k].fplus)
+	{
+		tr[k<<1].val=(tr[k<<1].val+tr[k].fplus*(tr[k<<1].r-tr[k<<1].l+1))%p;
+		tr[k<<1|1].val=(tr[k<<1|1].val+tr[k].fplus*(tr[k<<1|1].r-tr[k<<1|1].l+1))%p;
+		tr[k<<1].fplus=(tr[k<<1].fplus+tr[k].fplus)%p;
+		tr[k<<1|1].fplus=(tr[k<<1|1].fplus+tr[k].fplus)%p;
+		tr[k].fplus=0;
+	}
+}
+void modify(int k,int l,int r,LL v,int type)
+{
+	if(tr[k].l==l&&tr[k].r==r)
+	{
+		if(type==1)
+		{
+			tr[k].val=(tr[k].val*v)%p;
+			tr[k].fplus=(tr[k].fplus*v)%p;
+			tr[k].fmul=(tr[k].fmul*v)%p;
+			tr[k].mul=true;
+		}
+		else
+		{
+			tr[k].val=(tr[k].val+(r-l+1)*v)%p;
+			tr[k].fplus=(tr[k].fplus+v)%p;
+		}
+		return;
+	}
+	if(tr[k].mul||tr[k].fplus) pushdown(k);
+	if(l>tr[k].mid) modify(k<<1|1,l,r,v,type);
+	else if(r<=tr[k].mid) modify(k<<1,l,r,v,type);
+	else modify(k<<1,l,tr[k].mid,v,type),modify(k<<1|1,tr[k].mid+1,r,v,type);
+	tr[k].val=(tr[k<<1].val+tr[k<<1|1].val)%p;
+}
+LL query(int k,int l,int r)
+{
+	if(tr[k].l==l&&tr[k].r==r) return tr[k].val%p;
+	if(tr[k].mul||tr[k].fplus) pushdown(k);
+	if(l>tr[k].mid) return query(k<<1|1,l,r);
+	else if(r<=tr[k].mid) return query(k<<1,l,r);
+	else return (query(k<<1,l,tr[k].mid)+query(k<<1|1,tr[k].mid+1,r))%p;
+	tr[k].val=(tr[k<<1].val+tr[k<<1|1].val)%p;
+}
+int main()
+{
+	read(n);read(p);
+	build(1,1,n);
+	read(m);
+	int opt,x,y;
+	LL z;
+	while(m--)
+	{
+		scanf("%d%d%d",&opt,&x,&y);
+		if(opt==1||opt==2)
+		{
+			read(z);
+			modify(1,x,y,z,opt);
+		}
+		else printf("%lld\n",query(1,x,y));
+	}
+	return 0;
+}
