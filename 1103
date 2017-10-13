@@ -16,34 +16,34 @@ inline void ins(int u,int v)
 	nextt[++cnt]=head[u];to[cnt]=v;head[u]=cnt;
 	nextt[++cnt]=head[v];to[cnt]=u;head[v]=cnt;
 }
-void dfs1(int x)
+void dfs1(int x,int pre)
 {
-	dep[x]=dep[fa[x]]+1;
-	siz[x]=1;
+	int pos=++tim;
+	fa[x]=pre;
+	dep[x]=dep[pre]+1;
 	for(int i=head[x];i;i=nextt[i])
 	{
 		int v=to[i];
-		if(fa[x]==v) continue;
-		fa[v]=x;
-		dfs1(v);
-		siz[x]+=siz[v];
+		if(v==pre) continue;
+		dfs1(v,x);
 	}
+	siz[x]=tim-pos;
 }
-void dfs2(int x)
+void dfs2(int x,int chain)
 {
 	belong[x]=++tim;
 	int p=0;
-	if(!top[x]) top[x]=x;
+	top[x]=chain;
 	for(int i=head[x];i;i=nextt[i])
 	{
 		int v=to[i];
 		if(fa[x]!=v&&siz[p]<siz[v]) p=v;
 	}
-	if(p) top[p]=top[x],dfs2(p);
+	if(p) dfs2(p,chain);
 	for(int i=head[x];i;i=nextt[i])
 	{
 		int v=to[i];
-		if(fa[x]!=v&&v!=p) dfs2(v);
+		if(fa[x]!=v&&v!=p) dfs2(v,v);
 	}
 }
 inline void pushup(int k) {tr[k].val=tr[k<<1].val+tr[k<<1|1].val;}
@@ -100,7 +100,7 @@ int main(int argc,char *argv[])
 		if(a>b) swap(a,b);
 		ins(a,b);
 	}
-	dfs1(1);dfs2(1);
+	dfs1(1,0);tim=0;dfs2(1,1);
 	build(1,1,n);
 	scanf("%d",&m);
 	char opt[5];
