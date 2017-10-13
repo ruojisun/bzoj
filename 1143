@@ -1,0 +1,55 @@
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <queue> 
+#define N 105
+#define cl(a,b) memset(a,b,sizeof(a))
+using namespace std;
+bool use[N];
+int n,m,f[N],G[N][N],E[N][N],dep[N];
+void floyd()
+{
+	for(int k=1;k<=n;++k)
+	 for(int i=1;i<=n;++i)
+	  for(int j=1;j<=n;++j)
+	   if(G[i][k]&&G[k][j])
+	    G[i][j]=1; 
+}
+bool Dfs(int x)
+{
+	for(int i=1;i<=n;++i)
+	{
+		if(E[x][i]&&!use[i])
+		{
+			use[i]=1;
+			if(!f[i]||Dfs(f[i]))
+			{
+				f[i]=x;
+				return true;
+			}
+		}
+	}
+	return false;
+}
+int main(int argc,char *argv[])
+{
+	scanf("%d%d",&n,&m);
+	for(int u,v;m--;)
+	{
+		scanf("%d%d",&u,&v);
+		G[u][v]=1;
+	}
+	floyd();
+	for(int i=1;i<=n;++i)
+	 for(int j=1;j<=n;++j)
+	  if(i!=j&&G[i][j])
+	   E[i][j]=1;
+	int ans=0; 
+	for(int i=1;i<=n;++i)
+	{
+		cl(use,0);
+		if(Dfs(i)) ans++;
+	}
+	printf("%d\n",n-ans); 
+	return 0;
+}
