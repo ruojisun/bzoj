@@ -1,0 +1,42 @@
+#include <iostream>
+#include <cstdio>
+#include <cmath>
+#define N 1001 
+#define eps 1e-5
+using namespace std;
+int n,k,x[N],y[N],fa[N];
+double far[N][N];
+int find_(int x) {return x==fa[x]?x:fa[x]=find_(fa[x]);}
+int check(double dis)
+{
+	int num=0;
+	bool vis[N];
+	for(int i=1;i<=n;++i) fa[i]=i,vis[i]=false;
+	for(int i=1;i<=n;++i)
+	 for(int j=i+1;j<=n;++j)
+	  if(far[i][j]-dis<=eps)
+	   fa[find_(j)]=find_(i);
+	for(int i=1;i<=n;++i)
+	{
+		int pr=find_(i);
+		if(!vis[pr]) vis[pr]=1,num++;
+	}
+	return num;
+}
+int main()
+{
+	scanf("%d%d",&n,&k);
+	for(int i=1;i<=n;++i) scanf("%d%d",&x[i],&y[i]);
+	double l=0.0,r=1000000.0;
+	for(int i=1;i<=n;++i)
+	 for(int j=i+1;j<=n;++j)
+	  far[i][j]=far[j][i]=sqrt((x[i]-x[j])*(x[i]-x[j])+(y[i]-y[j])*(y[i]-y[j]));
+	for(double mid;fabs(r-l)>=eps;)
+	{
+		mid=(l+r)/2;
+		if(check(mid)<k) r=mid-eps;
+		else l=mid+eps; 
+	}
+	printf("%.2lf",l);
+	return 0;
+}
