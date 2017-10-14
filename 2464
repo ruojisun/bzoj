@@ -1,0 +1,80 @@
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#define N 250005
+#define cl(a,b) memset(a,b,sizeof(a))
+
+using namespace std;
+bool vis[N];
+char G[500][500];
+int n,m,x1,y1,x2,y2,cnt,fx[5]={1,-1,0,0},fy[5]={0,0,-1,1},to[N<<1],head[N],nextt[N<<1],val[N<<1],ans[N];
+void ins(int u,int v,int w)
+{
+	nextt[++cnt]=head[u];
+	to[cnt]=v;
+	val[cnt]=w;
+	head[u]=cnt;
+}
+struct node
+{
+	int x,y;
+	bool operator<(node a)const
+	{
+		return y>a.y;
+	}
+};
+priority_queue<node>q;
+void dijkstra(int S,int T)
+{
+	cl(vis,0);
+	cl(ans,0x3f);
+	vis[S]=0;
+	ans[S]=0; 
+	q.push((node){S,ans[S]});
+	for(node now;!q.empty();)
+	{
+		now=q.top();
+		q.pop();
+		if(vis[now.x]) continue;
+		vis[now.x]=1;
+		for(int i=head[now.x];i;i=nextt[i])
+		{
+			int v=to[i];
+			if(ans[v]>ans[now.x]+val[i])
+			{
+				ans[v]=ans[now.x]+val[i];
+				q.push((node){v,ans[v]}); 
+			}
+		}
+	}
+}
+int main()
+{
+	scanf("%d%d",&n,&m);
+	while(n&&m)
+	{
+		for(int i=1;i<=n;++i)
+		 for(int j=1;j<=m;++j)
+		  cin>>G[i][j];
+		scanf("%d%d%d%d",&x1,&y1,&x2,&y2);
+		x1+=1,y1+=1,x2+=1,y2+=1;
+		for(int i=1;i<=n;++i)
+			for(int j=1;j<=m;++j)
+				for(int k=0;k<4;++k)
+				{
+					int x=i+fx[k],y=j+fy[k];
+					if(x>=1&&x<=n&&y>=1&&y<=m)
+					{
+						if(G[x][y]==G[i][j]) ins((i-1)*m+j,(x-1)*m+y,0);
+						else ins((i-1)*m+j,(x-1)*m+y,1);
+					}
+				}
+		dijkstra((x1-1)*m+y1,(x2-1)*m+y2);
+		printf("%d\n",ans[(x2-1)*m+y2]);
+		scanf("%d%d",&n,&m);
+		cnt=0;
+		cl(head,0);
+	}
+	return 0;
+}
