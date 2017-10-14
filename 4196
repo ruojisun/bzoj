@@ -1,0 +1,165 @@
+#include <vector>
+#include <cstdio>
+#define N 100005
+
+using namespace std;
+vector<int>G[N];
+int n,q,tim,siz[N],fa[N],dep[N],belong[N],top[N];
+struct Segment
+{
+    int l,r,mid,sum,flag;
+    Segment *ch[2];
+    Segment()
+    {
+        ch[0]=ch[1]=NULL;
+        sum=flag=0;
+    }
+}*root=new Segment;
+void dfs1(int x)
+{
+    siz[x]=1;
+    dep[x]=dep[fa[x]]+1;
+    for(int i=0;i<G[x].size();++i)
+    {
+        int v=G[x][i];
+        if(fa[x]!=v)
+        {
+            fa[v]=x;
+            dfs1(v);
+            siz[x]+=siz[v];
+        }
+    }
+}
+void dfs2(int x)
+{
+    if(!top[x]) top[x]=x;
+    int t=0;
+    belong[x]=++tim;
+    for(int i=0;i<G[x].size();++i)
+    {
+        int v=G[x][i];
+        if(fa[x]!=v&&siz[t]<siz[v]) t=v;
+    }
+    if(t) top[t]=top[x],dfs2(t);
+    for(int i=0;i<G[x].size();++i)
+    {
+        int v=G[x][i];
+        if(fa[x]!=v&&v!=t) dfs2(v);
+    }
+}
+inline void pushup(Segment *&k) {k->sum=k->ch[0]->sum+k->ch[1]->sum;}
+void build(Segment *&k,int l,int r)
+{
+    k=new Segment;
+    k->l=l;k->r=r;
+    if(l==r) return;
+    k->mid=(l+r)>>1;
+    build(k->ch[0],l,k->mid);
+    build(k->ch[1],k->mid+1,r);
+    pushup(k);
+}
+void swap(int &m,int &n)
+{
+    int tmp=n;
+    n=m;
+    m=tmp;
+}
+void pushdown(Segment *&k)
+{
+    if(k->flag==1)
+    {
+        k->ch[0]->flag=k->flag;
+        k->ch[0]->sum=k->ch[0]->r-k->ch[0]->l+1;
+        k->ch[1]->flag=k->flag;
+        k->ch[1]->sum=k->ch[1]->r-k->ch[1]->l+1;
+        k->flag=0;
+    }
+    else
+    {
+        k->ch[0]->flag=k->flag;
+        k->ch[0]->sum=0;
+        k->ch[1]->flag=k->flag;
+        k->ch[1]->sum=0;
+        k->flag=0;    
+    }
+}
+int Tree_Query(Segment *&k,int l,int r)
+{
+    if(k->l==l&&k->r==r) return k->sum;
+    if(k->flag) pushdown(k);
+    if(l>k->mid) return Tree_Query(k->ch[1],l,r);
+    else if(r<=k->mid) return Tree_Query(k->ch[0],l,r);
+    else return Tree_Query(k->ch[0],l,k->mid)+Tree_Query(k->ch[1],k->mid+1,r);
+    pushup(k);
+}
+void Tree_Change(Segment *&k,int l,int r,int opt)
+{
+    if(k->l==l&&k->r==r)
+    {
+        k->flag=opt;
+        if(opt==1) k->sum=r-l+1;
+        else k->sum=0;
+        return;
+    }
+    if(k->flag) pushdown(k);
+    if(l>k->mid) Tree_Change(k->ch[1],l,r,opt);
+    else if(r<=k->mid) Tree_Change(k->ch[0],l,r,opt);
+    else Tree_Change(k->ch[0],l,k->mid,opt),Tree_Change(k->ch[1],k->mid+1,r,opt);
+    pushup(k);
+}
+int Chain_Query(int x,int y)
+{
+    int ret=0;
+    for(;top[x]!=top[y];x=fa[top[x]])
+    {
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+        ret+=Tree_Query(root,belong[top[x]],belong[x]);
+    }
+    if(dep[x]<dep[y]) swap(x,y);
+    ret+=Tree_Query(root,belong[y],belong[x]);
+    return ret;
+}
+void Chain_Change(int x,int y,int opt)
+{
+    for(;top[x]!=top[y];x=fa[top[x]])
+    {
+        if(dep[top[x]]<dep[top[y]]) swap(x,y);
+        Tree_Change(root,belong[top[x]],belong[x],opt);
+    }
+    if(dep[x]<dep[y]) swap(x,y);
+    Tree_Change(root,belong[y],belong[x],opt);
+}
+int Main()
+{
+    scanf("%d",&n);
+    for(int pr,i=2;i<=n;++i)
+    {
+        scanf("%d",&pr);
+        G[++pr].push_back(i);  
+        G[i].push_back(pr); 
+    }
+    dfs1(1);
+    dfs2(1);
+    build(root,1,n);
+    scanf("%d",&q);
+    char opt[20];
+    for(int x;q--;)
+    {
+        scanf("%s%d",opt,&x);++x;
+        if(opt[0]=='i')
+        {
+            int ans=Chain_Query(1,x);
+            Chain_Change(1,x,1);
+            printf("%d\n",dep[x]-ans);
+        }
+        else 
+        {
+            int ans=Tree_Query(root,belong[x],belong[x]+siz[x]-1);
+            Tree_Change(root,belong[x],belong[x]+siz[x]-1,2);
+            printf("%d\n",ans);
+        }
+    }
+    return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]) {;}
