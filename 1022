@@ -1,0 +1,30 @@
+#include<algorithm>
+#include<iostream>
+#include<cstring>
+#include<cstdio>
+using namespace std;
+int n,T;
+bool Calculate()
+{
+	int i,x,xor_sum=0;
+	bool flag=1;
+	cin>>n;
+	for(int i=1;i<=n;i++)
+	{
+		scanf("%d",&x);
+		if(x^1) flag=0;
+		xor_sum^=x;
+	}
+	if(flag) return !xor_sum;
+	else return xor_sum;
+}
+int main()
+{
+	cin>>T;
+	for(;T;T--)
+	{
+		if(Calculate()) puts("John");
+		else puts("Brother");
+	}
+	return 0;
+}
