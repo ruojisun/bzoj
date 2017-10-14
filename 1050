@@ -1,0 +1,60 @@
+#include <algorithm>
+#include <cstdio>
+#define N 5055
+
+using namespace std;
+int n,m,S,T,ans1=0x7f,ans2=1,fa[N];
+int find_(int x) {return x==fa[x]?x:fa[x]=find_(fa[x]);}
+int gcd(int m,int n) {return !n?m:gcd(n,m%n);}
+struct node
+{
+	int x,y,z;
+	bool operator<(node a)const
+	{
+		return z<a.z;
+	}
+}e[N];
+inline int min(int a,int b) {return a>b?b:a;}
+inline int max(int a,int b) {return a>b?a:b;}
+inline void swap(int &m,int &n)
+{
+	int tmp=n;
+	n=m;
+	m=tmp;
+}
+void get()
+{
+	for(int i=1;i<=m;++i)
+	{
+		for(int j=1;j<=n;++j) fa[j]=j;
+		for(int j=i;j<=m;++j)
+		{
+			int fx=find_(e[j].x),fy=find_(e[j].y);
+			if(fx!=fy) fa[fy]=fx;
+			if(find_(S)==find_(T))
+			{
+				if(e[j].z*ans2<ans1*e[i].z)
+				ans1=e[j].z,ans2=e[i].z;
+				break;
+			}
+		}
+		if(i==1&&find_(S)!=find_(T)) {puts("IMPOSSIBLE");return;}
+	}
+	if(ans1==0x7f&&ans2==1) puts("IMPOSSIBLE");
+	int GCD=gcd(ans1,ans2);
+	if(GCD==ans2) printf("%d\n",ans1/ans2);
+	else printf("%d/%d\n",ans1/GCD,ans2/GCD);
+}
+int main(int argc,char *argv[])
+{
+ 	scanf("%d%d",&n,&m);
+ 	for(int x,y,z,i=1;i<=m;++i)
+ 	{
+ 		scanf("%d%d%d",&x,&y,&z);
+ 		e[i]=(node){x,y,z};
+	}
+	scanf("%d%d",&S,&T);
+	sort(e+1,e+1+m);
+	get();
+ 	return 0;
+}
