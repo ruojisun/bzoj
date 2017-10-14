@@ -1,0 +1,70 @@
+#include <cstdio>
+#define N 350000
+bool instack[N];
+int n,m,cnt,cnt_,top,tim,sumcol,in[N],to[N],to_[N],col[N],siz[N],low[N],dfn[N],stack[N],head[N],head_[N],nextt[N],nextt_[N];
+inline int min(int a,int b) {return a>b?b:a;}
+void tarjan(int x)
+{
+	low[x]=dfn[x]=++tim;
+	instack[x]=true;
+	stack[++top]=x;
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(!dfn[v])
+		{
+			tarjan(v);
+			low[x]=min(low[x],low[v]);
+		}
+		else if(instack[v]) low[x]=min(low[x],dfn[v]);
+	}
+	if(low[x]==dfn[x])
+	{
+		sumcol++;
+		int k;
+		do
+		{
+			k=stack[top--];
+			instack[k]=false;
+			col[k]=sumcol;
+			siz[sumcol]++;
+		}while(k!=x);
+	}
+}
+bool judge(int x)
+{
+	if(in[x]||siz[x]!=1) return false;
+	for(int i=head_[x];i;i=nextt_[i])
+	{
+		int v=to_[i];
+		if(in[v]==1) return false;
+	}
+	return true;
+}
+int main()
+{
+	scanf("%d%d",&n,&m);
+	for(int x,y;m--;)
+	{
+		scanf("%d%d",&x,&y);
+		nextt[++cnt]=head[x];to[cnt]=y;head[x]=cnt; 
+	}
+	for(int i=1;i<=n;++i) if(!dfn[i]) tarjan(i);
+	for(int i=1;i<=n;++i)
+	 for(int j=head[i];j;j=nextt[j])
+	 {
+	 	int v=to[j];
+	 	if(col[i]!=col[v])
+	 	{
+	 		for(int k=head_[col[i]];k;k=nextt_[k]) if(to_[k]==col[v]) goto flag;
+	 		nextt_[++cnt_]=head_[col[i]];to_[cnt_]=col[v];head_[col[i]]=cnt_;
+			in[col[v]]++;
+		}
+		flag:;
+	 }
+	int p=0;
+	for(int i=1;i<=sumcol;++i) if(!in[i]) p++;
+	for(int i=1;i<=sumcol;++i) if(judge(i)) {p--;break;}
+	printf("%.6lf",(n-p)*1.0/n);
+	return 0;
+}
