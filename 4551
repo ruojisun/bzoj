@@ -1,0 +1,95 @@
+#include <cstdio>
+#define N 200005
+int n,q,cnt,tim,ans,to[N],dep[N],val[N<<2|1],siz[N],fa[N],top[N],bf[N],head[N],belong[N],nextt[N];
+void Dfs1(int x,int pr)
+{
+    fa[x]=pr;
+    dep[x]=dep[pr]+1;
+    int pos=++tim;
+    for(int i=head[x];i;i=nextt[i])
+    {
+        int v=to[i];
+        if(v==pr) continue;
+        Dfs1(v,x);
+    }
+    siz[x]=tim-pos;
+}
+void Dfs2(int x,int chain)
+{
+	belong[x]=++tim;
+	top[x]=chain;
+	bf[tim]=x;
+	int p=0;
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(fa[x]!=v&&siz[p]<siz[v]) p=v;
+	}
+	if(p) Dfs2(p,chain);
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(fa[x]!=v&&v!=p) Dfs2(v,v);
+	}
+}
+inline void swap(int &m,int &n)
+{
+    int tmp=n;
+    n=m;
+    m=tmp;
+}
+void modify(int k,int l,int r,int t)
+{
+	if(l==r)
+	{
+		val[k]=bf[t];
+		return;
+	}
+	int mid=(l+r)>>1;
+	if(t<=mid) modify(k<<1,l,mid,t);
+	else modify(k<<1|1,mid+1,r,t);
+	val[k]=dep[val[k<<1]]>dep[val[k<<1|1]]?val[k<<1]:val[k<<1|1];
+}
+void ask(int k,int l,int r,int x,int y)
+{
+	if(l==x&&r==y)
+	{
+		ans=dep[ans]>dep[val[k]]?ans:val[k];
+		return;
+	}
+	int mid=(l+r)>>1;
+	if(x>mid) ask(k<<1|1,mid+1,r,x,y);
+	else if(y<=mid) ask(k<<1,l,mid,x,y);
+	else ask(k<<1,l,mid,x,mid),ask(k<<1|1,mid+1,r,mid+1,y);
+	val[k]=dep[val[k<<1]]>dep[val[k<<1|1]]?val[k<<1]:val[k<<1|1];
+}
+int get(int x,int y)
+{
+	ans=0;
+	for(;top[x]!=top[y];y=fa[top[y]])
+	ask(1,1,n,belong[top[y]],belong[y]);
+	ask(1,1,n,belong[x],belong[y]);
+	return ans;
+}
+int main(int argc,char *argv[])
+{
+    scanf("%d%d",&n,&q);
+    for(int u,v,i=1;i<n;++i)
+    {
+        scanf("%d%d",&u,&v);
+        nextt[++cnt]=head[u];to[cnt]=v;head[u]=cnt;
+        nextt[++cnt]=head[v];to[cnt]=u;head[v]=cnt;
+    }
+    Dfs1(1,0);
+    tim=0;
+    Dfs2(1,1);
+    modify(1,1,n,belong[1]);
+    char opt[5];
+    for(int x;q--;)
+    {
+        scanf("%s%d",opt,&x);
+        if(opt[0]=='Q') printf("%d\n",get(1,x));
+        else modify(1,1,n,belong[x]);
+    }
+    return 0;
+}
