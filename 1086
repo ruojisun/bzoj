@@ -1,0 +1,55 @@
+#include <cstdio>
+#include <stack>
+using namespace std;
+#define N 2500
+
+stack<int>s;
+int n,b,now,cnt,siz[N],to[N<<1],nextt[N<<1],head[N],pri[N],bel[N]; 
+inline void ins(int u,int v)
+{
+	nextt[++cnt]=head[u];to[cnt]=v;head[u]=cnt;
+	nextt[++cnt]=head[v];to[cnt]=u;head[v]=cnt;
+}
+void Dfs(int x,int fa)
+{
+	s.push(x);
+	for(int i=head[x];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(v==fa) continue;
+		Dfs(v,x);
+		if(siz[x]+siz[v]>=b)
+		{
+			pri[++now]=x;
+			siz[x]=0;
+			while(s.top()!=x)
+			{
+				bel[s.top()]=now;
+				s.pop();
+			}
+		}
+		else siz[x]+=siz[v];
+	}
+	siz[x]++;
+}
+int main()
+{
+	scanf("%d%d",&n,&b);
+	if(b>n) {return puts("0"),0;}
+	for(int u,v,i=1;i<n;++i)
+	{
+		scanf("%d%d",&u,&v);
+		ins(u,v);
+	}
+	Dfs(1,0);
+	while(!s.empty())
+	{
+		bel[s.top()]=now;
+		s.pop();
+	}
+	printf("%d\n",now);
+	for(int i=1;i<=n;++i) printf("%d ",bel[i]);
+	printf("\n");
+	for(int i=1;i<=now;++i) printf("%d ",pri[i]);
+	return 0;
+}
