@@ -1,0 +1,55 @@
+#include <cstdio>
+#include <cmath>
+#define eps 1e-9
+#define N 10005
+bool vis[N],flag=false;
+int n,m,cnt,s,t,to[N<<1],head[N],nextt[N<<1];
+double c,val[N<<1],far[N<<1];
+void spfa(int u,double x)
+{
+	vis[u]=1;
+	for(int i=head[u];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(far[v]>far[u]+val[i]-x)
+		{
+			if(vis[v])
+			{
+				flag=true;
+				return;
+			}
+			far[v]=far[u]+val[i]-x;
+			spfa(v,x);
+		}
+	}
+	vis[u]=0;
+}
+bool check(double x)
+{
+	flag=false;
+	for(int i=1;i<=n;++i) vis[i]=false,far[i]=0;
+	for(int i=1;i<=n;++i)
+	{
+		spfa(i,x);
+		if(flag) return true;
+	}
+	return false;
+}
+int main(int argc,char *argv[])
+{
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=m;++i)
+	{
+		scanf("%d%d%lf",&s,&t,&c);
+		nextt[++cnt]=head[s];to[cnt]=t;val[cnt]=c;head[s]=cnt;
+	}
+	double l=-1e8,r=1e8,ans;
+	for(double mid;fabs(r-l)>=eps;)
+	{
+		mid=(l+r)/2;
+		if(check(mid)) r=mid-eps,ans=mid;
+		else l=mid+eps;
+	}
+	printf("%.8lf",ans);
+	return 0;
+}
