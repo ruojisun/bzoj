@@ -1,0 +1,40 @@
+#include <algorithm>
+#include <cstdio>
+#define N 10005
+using namespace std;
+struct Edge
+{
+	int x,y,z;
+	bool operator<(Edge a)const
+	{
+		return z<a.z;
+	}
+}e[N];
+int n,m,ans,fa[N];
+int find_(int x) {return x==fa[x]?x:fa[x]=find_(fa[x]);}
+int Main()
+{
+	scanf("%d%d",&n,&m);
+	for(int x,y,z,i=1;i<=m;++i)
+	{
+		scanf("%d%d%d",&x,&y,&z);
+		e[i]=(Edge){x,y,z}; 
+	}
+	sort(e+1,e+1+m);
+	for(int i=1;i<=n;++i) fa[i]=i;
+	int num=0;
+	for(int i=1;i<=m;++i)
+	{
+		int fx=find_(e[i].x),fy=find_(e[i].y);
+		if(fx!=fy)
+		{
+			fa[fy]=fx;
+			ans=e[i].z;
+			++num;
+		}
+	}
+	printf("%d %d\n",num,ans);
+	return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]) {;}
