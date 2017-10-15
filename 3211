@@ -1,0 +1,60 @@
+#include <cstdio>
+#include <cmath>
+#define N 100005
+
+typedef long long LL;
+int n,m;
+LL val[N<<2|1];
+bool flag[N<<2|1];
+void build(int k,int l,int r)
+{
+	if(l==r)
+	{
+		scanf("%lld",&val[k]);
+		if(val[k]==1||val[k]==0) flag[k]=1;
+		return;
+	}
+	int mid=(l+r)>>1;
+	build(k<<1,l,mid);
+	build(k<<1|1,mid+1,r);
+	flag[k]=flag[k<<1]&flag[k<<1|1];
+	val[k]=val[k<<1]+val[k<<1|1];
+}
+LL query(int k,int l,int r,int x,int y)
+{
+	if(l==x&&r==y) return val[k];
+	int mid=(l+r)>>1;
+	if(x>mid) return query(k<<1|1,mid+1,r,x,y);
+	else if(y<=mid) return query(k<<1,l,mid,x,y);
+	else return query(k<<1,l,mid,x,mid)+query(k<<1|1,mid+1,r,mid+1,y);
+}
+void modify(int k,int l,int r,int x,int y)
+{
+	if(flag[k]) return;
+	if(l==r)
+	{
+		val[k]=sqrt(val[k]);
+		if(val[k]==1||val[k]==0) flag[k]=true;
+		return;
+	}
+	int mid=(l+r)>>1;
+	if(x>mid) modify(k<<1|1,mid+1,r,x,y);
+	else if(y<=mid) modify(k<<1,l,mid,x,y);
+	else modify(k<<1,l,mid,x,mid),modify(k<<1|1,mid+1,r,mid+1,y);
+	flag[k]=flag[k<<1]&flag[k<<1|1];
+	val[k]=val[k<<1]+val[k<<1|1];
+}
+int main()
+{
+	scanf("%d",&n);
+	build(1,1,n);
+	scanf("%d",&m);
+	for(int x,l,r;m--;)
+	{
+		scanf("%d%d%d",&x,&l,&r);
+		if(l>r) l^=r^=l^=r;
+		if(x==1) printf("%lld\n",query(1,1,n,l,r));
+		else modify(1,1,n,l,r);
+	}
+	return 0;
+}
