@@ -1,0 +1,105 @@
+#include <iostream>
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#define N 50000
+#define inf 0x3f3f3f3f
+#define cl(a,b) memset(a,b,sizeof(a))
+using namespace std;
+char G[55][55];
+int n,a1,a2,an,b1,b2,bn,cnt=1,dep[N],to[N<<1],head[N],nextt[N<<1],flow[N<<1];
+inline void ins(int u,int v,int w)
+{
+	nextt[++cnt]=head[u];to[cnt]=v;flow[cnt]=w;head[u]=cnt;
+	nextt[++cnt]=head[v];to[cnt]=u;flow[cnt]=0;head[v]=cnt;
+}
+bool bfs(int S,int T)
+{
+	cl(dep,-1);
+	dep[S]=0;
+	queue<int>q;
+	q.push(S);
+	for(int u;!q.empty();)
+	{
+		u=q.front();q.pop();
+		for(int i=head[u];i;i=nextt[i])
+		{
+			int v=to[i];
+			if(dep[v]==-1&&flow[i])
+			{
+				dep[v]=dep[u]+1;
+				if(v==T) return true;
+				q.push(v);
+			}
+		}
+	}
+	return false;
+}
+inline int min(int a,int b) {return a>b?b:a;}
+int dfs(int u,int T,int limit)
+{
+	if(u==T||!limit) return limit;
+	int f,res=0;
+	for(int i=head[u];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(dep[v]==dep[u]+1&&flow[i]&&(f=dfs(v,T,min(limit,flow[i]))))
+		{
+			flow[i]-=f;
+			flow[i^1]+=f;
+			res+=f;
+			limit-=f;
+			if(!limit) break;
+		}
+	}
+	if(res!=limit) dep[u]=-1;
+	return res;
+}
+int dinic(int S,int T)
+{
+	int ret=0;
+	for(;bfs(S,T);ret+=dfs(S,T,inf));
+	return ret;
+}
+void init()
+{
+	cnt=1;
+	cl(head,0);
+	cl(nextt,0);
+}
+int main(int argc,char *argv[])
+{
+	while(scanf("%d%d%d%d%d%d%d",&n,&a1,&a2,&an,&b1,&b2,&bn)!=EOF)
+	{
+		init();
+		a1++;a2++;b1++;b2++;
+		for(int i=1;i<=n;++i)
+		 for(int j=1;j<=n;++j)
+		  cin>>G[i][j];
+		for(int i=1;i<=n;++i)
+		{
+			for(int j=1;j<i;++j)
+			{
+				if(G[i][j]=='O') ins(i,j,2),ins(j,i,2);
+				else if(G[i][j]=='N') ins(i,j,inf),ins(j,i,inf);
+			}
+		}
+		int S=0,T=n<<1|1;
+		ins(S,a1,an*2),ins(a2,T,an*2),ins(S,b1,bn*2),ins(b2,T,bn*2);
+		int fa=dinic(S,T);
+		init();
+		for(int i=1;i<=n;++i)
+		{
+			for(int j=1;j<i;++j)
+			{
+				if(G[i][j]=='O') ins(i,j,2),ins(j,i,2);
+				else if(G[i][j]=='N') ins(i,j,inf),ins(j,i,inf);
+			}
+		}
+		ins(S,a1,an*2),ins(a2,T,an*2),ins(S,b2,bn*2),ins(b1,T,bn*2);
+		int fb=dinic(S,T);
+		if(fa<2*(an+bn)||fb<2*(an+bn)) puts("No");
+		else puts("Yes");
+	}
+	return 0;
+}
