@@ -1,0 +1,145 @@
+#include <algorithm>
+#include <ctype.h>
+#include <cstring>
+#include <cstdio>
+#define N 200000
+#define INF 0x7fffffff
+using namespace std;
+inline void read(int &x)
+{
+    x=0;bool f=0;
+    register char ch=getchar();
+    for(;!isdigit(ch);ch=getchar()) if(ch=='-') f=1;
+    for(; isdigit(ch);ch=getchar()) x=x*10+ch-'0';
+    x=f?-x:x;
+}
+struct Data
+{
+    int data,pos;
+    bool operator<(Data a)const
+    {
+        if(data==a.data) return pos<a.pos;
+        else return data<a.data;
+    }
+}d[N];
+int mn[N],pos[N],root,cn,data[N],siz[N],flag[N],fa[N],ch[N][2],n;
+class SB
+{
+    private:
+        inline int min(int a,int b) {return a>b?b:a;}
+        inline void swap(int &a,int &b)
+        {
+            int tmp=b;
+            b=a;
+            a=tmp;
+        }
+        inline void pushdown(int rt)
+        {
+            if(flag[rt])
+            {
+                flag[rt]=0;
+                flag[ch[rt][0]]^=1;
+                swap(ch[ch[rt][0]][0],ch[ch[rt][0]][1]);
+                flag[ch[rt][1]]^=1;
+                swap(ch[ch[rt][1]][0],ch[ch[rt][1]][1]);
+            }
+        }
+        inline int son(int x) {return ch[fa[x]][1]==x;}
+        inline void rotate(int x)
+        {
+            int y=fa[x],z=fa[y],b=son(x),c=son(y),a=ch[x][!b];
+            if(z) ch[z][c]=x;else root=x;fa[x]=z;
+            if(a) fa[a]=y;ch[y][b]=a;
+            ch[x][!b]=y;fa[y]=x;
+            pushup(y);pushup(x);
+        }
+    public:
+        inline void pushup(int rt)
+        {
+            int l=ch[rt][0],r=ch[rt][1];
+            mn[rt]=min(data[rt],min(mn[l],mn[r]));
+            if(mn[rt]==data[rt]) pos[rt]=rt;
+            else if(mn[rt]==mn[l]) pos[rt]=pos[l];
+            else pos[rt]=pos[r];
+            siz[rt]=siz[l]+siz[r]+1;
+        }
+        void splay(int x,int i)
+        {
+            while(fa[x]!=i)
+            {
+                int y=fa[x],z=fa[y];
+                if(z==i) rotate(x);
+                else 
+                {
+                    pushdown(z);
+                    pushdown(y);
+                    pushdown(x);
+                    if(son(x)==son(y))
+                    {
+                        rotate(y);
+                        rotate(x);
+                    }
+                    else 
+                    {
+                        rotate(x);
+                        rotate(x);
+                    }
+                }
+            }
+        }
+        int getkth(int rt,int k)
+        {
+            pushdown(rt);
+            int l=ch[rt][0];
+            if(siz[l]+1==k) return rt;
+            if(k<siz[l]+1) return getkth(ch[rt][0],k);
+            return getkth(ch[rt][1],k-(siz[l]+1));
+        }
+        int getpos(int l,int r)
+        {
+            int ll=getkth(root,l-1),rr=getkth(root,r+1);
+            splay(ll,0);
+            splay(rr,ll);
+            return pos[ch[rr][0]];
+        }
+        void reverse(int l,int r)
+        {
+            int ll=getkth(root,l-1),rr=getkth(root,r+1);
+            splay(ll,0);
+            splay(rr,ll);
+            int p=ch[rr][0];
+            flag[p]^=1;
+            swap(ch[p][0],ch[p][1]);
+        }
+};
+class SB *S;
+int main(int argc,char *argv[])
+{
+    read(n);
+    for(int i=2;i<=n+1;i++)
+    {
+        read(d[i].data);
+        d[i].pos=i;
+    }
+    sort(d+2,d+2+n);
+    for(int i=0;i<=n+2;i++) mn[i]=INF;
+    for(int i=2;i<=n+1;i++) data[d[i].pos]=i;
+    data[0]=data[1]=data[n+2]=INF;
+    root=1;siz[0]=0;
+    for(int i=1;i<=n+2;i++)
+    {
+        fa[i]=i-1;
+        ch[i][1]=i+1;
+    }
+    ch[n+2][1]=0;
+    for(int i=n+2;i>=1;i--) S->pushup(i);
+    for(int i=1;i<=n;i++)
+    {
+        int p=S->getpos(i+1,n+1);
+        S->splay(p,0);
+        printf("%d",siz[ch[p][0]]);
+        S->reverse(i+1,siz[ch[p][0]]+1);
+        if(i!=n) printf(" "); 
+    }
+	return 0;
+}
