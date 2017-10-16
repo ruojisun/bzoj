@@ -1,0 +1,80 @@
+#include <cstring>
+#include <cstdio>
+#include <queue>
+#define N 200000
+#define cl(a,b) memset(a,b,sizeof(a))
+using namespace std;
+int n,m,S,T,cnt=1,sum,f[N],cur[N],dep[N<<1],to[N<<1],head[N],nextt[N<<1],flow[N<<1];
+void ins(int u,int v,int w)
+{
+	nextt[++cnt]=head[u];to[cnt]=v;flow[cnt]=w;head[u]=cnt;
+	nextt[++cnt]=head[v];to[cnt]=u;flow[cnt]=0;head[v]=cnt;
+}
+bool bfs()
+{
+	cl(dep,-1);
+	dep[S]=0;
+	queue<int>q;
+	for(int i=S;i<=T;++i) cur[i]=head[i];
+	q.push(S);
+	for(int u;!q.empty();)
+	{
+		u=q.front();q.pop();
+		for(int i=head[u];i;i=nextt[i])
+		{
+			int v=to[i];
+			if(dep[v]==-1&&flow[i])
+			{
+				dep[v]=dep[u]+1;
+				if(v==T) return true;
+				q.push(v); 
+			}
+		}
+	}
+	return false;
+}
+inline int min(int a,int b) {return a>b?b:a;}
+int dfs(int u,int limit)
+{
+	if(u==T||!limit) return limit;
+	int f,res=0;
+	for(int &i=cur[u];i;i=nextt[i])
+	{
+		int v=to[i];
+		if(dep[v]==dep[u]+1&&flow[i]&&(f=dfs(v,min(limit,flow[i]))))
+		{
+			flow[i]-=f;
+			flow[i^1]+=f;
+			res+=f;
+			limit-=f;
+			if(!limit) break;
+		}
+	}
+	if(res!=limit) dep[u]=-1;
+	return res;
+}
+int dinic()
+{
+	int ret=0;
+	while(bfs()) ret+=dfs(S,0x3f3f3f3f);
+	return ret;
+}
+int main(int argc,char *argv[])
+{
+	scanf("%d%d",&n,&m);
+	S=0,T=n<<1|1;
+	for(int i=1;i<=n;++i)
+	{
+		scanf("%d",&f[i]);
+		sum+=f[i];
+		ins(S,i,f[i]);
+		ins(i+n,T,f[i]);
+	}
+	for(int u,v,w,i=1;i<=m;++i)
+	{
+		scanf("%d%d%d",&u,&v,&w);
+		ins(u,v+n,w);
+	}
+	printf("%d\n",sum-dinic());
+	return 0;
+}
