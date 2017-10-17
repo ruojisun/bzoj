@@ -1,0 +1,25 @@
+#include <algorithm>
+#include <cstdio>
+#define N 10005
+using namespace std;
+double sum1,sum2,w[N];
+int n,m;
+int main(int argc,char *argv[])
+{
+	scanf("%d%d",&n,&m);
+	for(int i=1;i<=n;++i) scanf("%lf",&w[i]);
+	for(int a,b,c;m--;)
+	{
+		scanf("%d%d%d",&a,&b,&c);
+		w[a]+=(c*1.0/2);
+		w[b]+=(c*1.0/2);
+	}
+	sort(w+1,w+1+n);
+	while(n)
+	{
+		sum1+=w[n--];
+		sum2+=w[n--];
+	}
+	printf("%d\n",(int)(sum1-sum2));
+	return 0;
+}
