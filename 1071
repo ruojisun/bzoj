@@ -1,0 +1,50 @@
+#include <algorithm>
+#include <cstdio>
+#include <cctype>
+#define N 10005
+
+using namespace std;
+typedef long long LL;
+LL n,a,b,c,h[N],s[N];
+inline void read(LL &x)
+{
+	register char ch=getchar();
+	for(x=0;!isdigit(ch);ch=getchar());
+	for(;isdigit(ch);x=x*10+ch-'0',ch=getchar());
+}
+struct node
+{
+	LL h,s,sum;
+}x[N],y[N];
+bool cmp(node a,node b) {return a.h<b.h;}
+bool comp(node a,node b) {return a.sum<b.sum;}
+int main(int argc,char *argv[])
+{
+	read(n);read(a);read(b);read(c);
+	for(int i=1;i<=n;++i)
+	{
+		read(x[i].h);
+		read(x[i].s);
+		x[i].sum=x[i].h*a+x[i].s*b;
+		y[i]=x[i];
+	}
+	sort(x+1,x+1+n,cmp);
+	sort(y+1,y+1+n,comp);
+	LL Min,Max;
+	int ans=0;
+	for(int i=1;i<=n;++i)
+	{
+		int l=0,r=0,cnt=0;
+		Min=x[i].s,Max=Min+c/b;
+		for(int j=1;j<=n;++j)
+		{
+			while(r<n&&y[r+1].sum<=a*x[j].h+b*x[i].s+c)
+			 ++r,cnt+=(y[r].s<=Max&&y[r].s>=Min);
+			while(l<n&&x[l+1].h<x[j].h)
+			 ++l,cnt-=(x[l].s<=Max&&x[l].s>=Min);
+			ans=cnt>ans?cnt:ans;
+		}
+	}
+	printf("%d\n",ans);
+	return 0;
+}
