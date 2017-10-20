@@ -1,0 +1,15 @@
+#include <cstdio>
+#define Mod 1000000007
+#define N 1000010
+int n;
+long long f[N];
+int Main()
+{
+	scanf("%d",&n);
+	f[1]=1;
+	for(int i=2;i<=n;++i) f[i]=(f[i-1]*2+f[i-2])%Mod;
+	printf("%lld\n",f[n]);
+	return 0;
+}
+int sb=Main();
+int main(int argc,char *argv[]) {;}
