@@ -1,0 +1,60 @@
+#include <iostream>
+#include <cstdio>
+#include <ext/pb_ds/priority_queue.hpp>
+#define N 1000005
+typedef long long LL;
+#define pa pair<LL,int>
+using namespace std;
+using namespace __gnu_pbds;
+bool vis[N];
+int n,m,T,rxa,rxc,rya,ryc,rp,cnt,to[N*10],head[N],nextt[N*10],val[N*10];
+LL far[N];
+typedef __gnu_pbds::priority_queue<pa,greater<pa>,pairing_heap_tag>heap;
+heap::point_iterator id[N];
+inline void ins(int u,int v,int w)
+{
+    nextt[++cnt]=head[u];to[cnt]=v;val[cnt]=w;
+    head[u]=cnt;
+}
+LL dijkstra()
+{
+	heap q;
+    for(int i=1;i<=n;++i) vis[i]=false,far[i]=1e18;
+    far[1]=0;
+    id[1]=q.push(make_pair(0,1));
+    for(int now;!q.empty();)
+    {
+        now=q.top().second;q.pop();
+        for(int i=head[now];i;i=nextt[i])
+        {
+            int v=to[i];
+            if(far[v]>far[now]+val[i])
+            {
+                far[v]=far[now]+val[i];
+                if(id[v]!=0) q.modify(id[v],make_pair(far[v],v));
+                else id[v]=q.push(make_pair(far[v],v));
+            }
+        }
+    }
+    return far[n];
+}
+int main(int argc,char *argv[])
+{
+    scanf("%d%d",&n,&m);
+    int x=0,y=0,z=0;
+    scanf("%d%d%d%d%d%d",&T,&rxa,&rxc,&rya,&ryc,&rp);
+    for(int i=1;i<=T;i++)
+    {
+        x=((LL)x*rxa+rxc)%rp;
+        y=((LL)y*rya+ryc)%rp;
+        int a=min(x%n+1,y%n+1),b=max(y%n+1,y%n+1);
+        ins(a,b,100000000-100*a);
+    }
+    for(int u,v,w,i=1;i<=m-T;++i)
+    {
+        scanf("%d%d%d",&u,&v,&w);
+        ins(u,v,w);
+    }
+    printf("%lld\n",dijkstra());
+    return 0;
+}
