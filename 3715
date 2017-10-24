@@ -1,0 +1,30 @@
+#include <cstdio>
+#define N 100005
+#define inf 0x3f3f3f3f
+
+int T,n,maxw,minw,maxh,minh,w1[N],w2[N],h1[N],h2[N];
+inline int max(int a,int b) {return a>b?a:b;}
+inline int min(int a,int b) {return a>b?b:a;}
+int main(int argc,char *argv[])
+{
+	scanf("%d",&T);
+	while(T--)
+	{
+		scanf("%d",&n);
+		maxw=-inf,minw=inf,maxh=-inf,minh=inf;
+		for(int i=1;i<=n;++i)
+		{
+			scanf("%d%d%d%d",&w1[i],&w2[i],&h1[i],&h2[i]);
+			maxw=max(maxw,w2[i]);
+			minw=min(minw,w1[i]);
+			maxh=max(maxh,h2[i]);
+			minh=min(minh,h1[i]);
+		}
+		bool flag=false;
+		for(int i=1;i<=n;++i)
+			if(w1[i]<=minw&&w2[i]>=maxw&&h1[i]<=minh&&h2[i]>=maxh) {flag=true;break;}
+		if(flag) puts("TAK");
+		else puts("NIE");
+	}
+	return 0;
+}
