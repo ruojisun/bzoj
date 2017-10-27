@@ -1,0 +1,67 @@
+#include <algorithm>
+#include <cctype>
+#include <cstdio>
+#include <cmath> 
+#define N 100005
+#define BUF 1234567
+
+using namespace std;
+char Buf[BUF],*buf=Buf;
+int n,m,q,u,v,t,tag,a[N];
+inline void Read(int &x)
+{
+    for(x=0;!isdigit(*buf);++buf);
+    for(;isdigit(*buf);x=x*10+*buf-'0',++buf);
+}
+struct Queue
+{
+    int h,t,Q[N*80];
+    void push(int x) {Q[++t]=x;}
+    bool empty() {return h>t;}
+    void pop() {++h;}
+    int front() {return Q[h];}
+    Queue() {h=1,t=0;}
+};
+Queue queue[3];
+int Top()
+{
+    int now;
+    for(int i=0;i<=2;++i)
+    {
+        if(queue[i].empty()) continue;
+        if (i!=0&&!queue[0].empty()&&queue[0].front()>queue[i].front()) continue;
+        if (i!=1&&!queue[1].empty()&&queue[1].front()>queue[i].front()) continue;
+        if (i!=2&&!queue[2].empty()&&queue[2].front()>queue[i].front()) continue;
+        now=queue[i].front(),queue[i].pop();
+        return now;
+    }
+}
+int main(int argc,char *argv[])
+{
+    fread(buf,1,BUF,stdin);
+    Read(n);Read(m);Read(q);Read(u);Read(v);Read(t);
+    double p=u*1.0/v;
+    for(int i=1;i<=n;++i) Read(a[i]);
+    sort(a+1,a+1+n);
+    for(int i=n;i>=1;--i) queue[0].push(a[i]);
+    int tmp[N],num=0;
+	for(int i=1;i<=m;++i)
+    {
+        int now=Top();
+        if(i%t==0) tmp[++num]=now+tag;
+        int l1=(floor)(p*(now+tag)),l2=now+tag-l1;
+        queue[1].push(l1-tag-q);
+        queue[2].push(l2-tag-q);
+        tag+=q;
+    }
+    for(int i=1;i<=num;++i) i==num?printf("%d",tmp[i]):printf("%d ",tmp[i]);
+    printf("\n");
+    num=0;
+    for (int i=1;!queue[0].empty()||!queue[1].empty ()||!queue[2].empty();++i)
+    {  
+        int now=Top();
+        if(i%t==0) tmp[++num]=now+tag;
+    }
+    for(int i=1;i<=num;++i) i==num?printf("%d",tmp[i]):printf("%d ",tmp[i]);
+    return 0;
+}
