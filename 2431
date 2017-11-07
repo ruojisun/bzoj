@@ -1,0 +1,20 @@
+#include <cstdio>
+#define Mod 10000
+int n,k,dp[1005][1005];
+int main(int argc,char *argv[])
+{
+	scanf("%d%d",&n,&k);
+	for(int i=1;i<=n;++i) dp[i][0]=1;
+	for(int i=2;i<=n;++i)
+	{
+		int sum=dp[i-1][0];
+		for(int j=1;j<=k;++j)
+		{
+			if(j-i>=0) sum-=dp[i-1][j-i];
+			sum+=dp[i-1][j];
+			dp[i][j]=(sum+Mod)%Mod;
+		}
+	}
+	printf("%d\n",dp[n][k]);
+	return 0;
+}
